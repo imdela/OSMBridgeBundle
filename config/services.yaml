@@ -1,0 +1,25 @@
+services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+
+  # OpenSign API Client
+  App\Service\OpenSignService:
+    arguments:
+      $client: '@GuzzleHttp\Client'
+      $appId: "%env(string:OPENSIGN_APP_ID)%"
+      $masterKey: "%env(string:OPENSIGN_MASTER_KEY)%"
+      $apiUrl: "%env(string:OPENSIGN_API_URL)%"
+      $userId: "%env(default::string:OPENSIGN_USER_ID)%"
+      $sessionToken: "%env(default::string:OPENSIGN_SESSION_TOKEN)%"
+
+  # Automation Command
+  App\Command\OpenSignSetupCommand:
+    arguments:
+      $client: '@GuzzleHttp\Client'
+      $appId: "%env(string:OPENSIGN_APP_ID)%"
+      $masterKey: "%env(string:OPENSIGN_MASTER_KEY)%"
+      $apiUrl: "%env(string:OPENSIGN_API_URL)%"
+      $rootPath: "%kernel.project_dir%"
+
+  GuzzleHttp\Client: ~

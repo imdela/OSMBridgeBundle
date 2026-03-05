@@ -1,0 +1,21 @@
+version: "3"
+
+tasks:
+  opensign:setup:
+    desc: "Bootstrap OpenSign (User, Token, Schema). Updates .env.dist and .env.test"
+    cmds:
+      - docker compose exec ai-php bin/console aion:opensign:setup .env.dist
+      - docker compose exec ai-php bin/console aion:opensign:setup .env.test
+      - echo "Setup complete. Run 'task restart' to apply changes."
+
+  opensign:reset:
+    desc: "Completely wipe OpenSign database and re-bootstrap from scratch"
+    cmds:
+      - echo "Wiping OpenSign database..."
+      - docker compose exec ai-mongodb mongosh opensign -u root -p rootpass --authenticationDatabase admin --eval "db.dropDatabase()"
+      - task opensign:setup
+
+  restart:
+    desc: "Restart containers to pick up env secrets"
+    cmds:
+      - docker compose up -d
