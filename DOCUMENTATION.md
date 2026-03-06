@@ -1,4 +1,4 @@
-# OpenSign & MinIO Integration Guide
+# OSMBridgeBundle Integration Guide
 
 This guide describes the architecture and configuration required to successfully integrate **OpenSign** with **MinIO** for self-hosted digital signatures within a Symfony/Docker environment.
 

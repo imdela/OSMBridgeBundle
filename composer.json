@@ -1,7 +1,7 @@
 {
-	"name": "aion/opensign-minio-blueprint",
-	"description": "Blueprint for integrating OpenSign with MinIO in a Symfony project",
-	"type": "project",
+	"name": "osm/osm-bridge-bundle",
+	"description": "OSMBridgeBundle: Blueprint for integrating OpenSign with MinIO in a Symfony project",
+	"type": "symfony-bundle",
 	"license": "MIT",
 	"require": {
 		"php": ">=8.2",

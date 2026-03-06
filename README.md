@@ -1,4 +1,4 @@
-# OpenSign & MinIO Integration Bundle Prototype
+# OSMBridgeBundle
 
 This branch contains the full infrastructure and service layer needed to integrate **OpenSign** and **MinIO** into a Symfony project.
 
