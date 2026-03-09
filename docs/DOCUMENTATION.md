@@ -40,7 +40,7 @@ Update your main application's `.env` configuration file. These tokens are gener
 ```env
 OPENSIGN_APP_ID=myAppId
 OPENSIGN_MASTER_KEY=myMasterKey
-OPENSIGN_API_URL=http://opensign:3000/app
+OPENSIGN_API_URL=http://opensign:8080/app
 OPENSIGN_USER_ID=myAdminUserId
 OPENSIGN_SESSION_TOKEN=myPermanentSessionToken
 ```
@@ -55,8 +55,8 @@ ossm_bridge:
     app_id: "%env(OPENSIGN_APP_ID)%"
     master_key: "%env(OPENSIGN_MASTER_KEY)%"
     api_url: "%env(OPENSIGN_API_URL)%"
-    user_id: "%env(string:OPENSIGN_USER_ID)%"
-    session_token: "%env(string:OPENSIGN_SESSION_TOKEN)%"
+    user_id: "%env(OPENSIGN_USER_ID)%"
+    session_token: "%env(OPENSIGN_SESSION_TOKEN)%"
 ```
 
 ### 4. Enable the Webhook Route
