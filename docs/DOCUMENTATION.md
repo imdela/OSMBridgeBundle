@@ -1,6 +1,6 @@
-# OssmBridgeBundle Integration Guide
+# OSSMBridgeBundle Integration Guide
 
-This guide describes the architecture, configuration, and practical usage required to successfully integrate **OpenSign** with **MinIO** via the `OssmBridgeBundle` across any Symfony application.
+This guide describes the architecture, configuration, and practical usage required to successfully integrate **OpenSign** with **MinIO** via the `OSSMBridgeBundle` across any Symfony application.
 
 ---
 
