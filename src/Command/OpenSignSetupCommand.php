@@ -60,7 +60,7 @@ class OpenSignSetupCommand extends Command
         $envFile = is_string($envFileArg) ? $envFileArg : '.env.dist';
 
         $configPath = $this->rootPath . '/config/opensign_setup.yaml';
-        if (!file_exists($configPath)) {
+        if (! file_exists($configPath)) {
             $io->error(sprintf('Configuration file not found: %s', $configPath));
 
             return Command::FAILURE;
@@ -91,9 +91,11 @@ class OpenSignSetupCommand extends Command
             ]);
 
             $userData = json_decode($response->getBody()->getContents(), true);
-            $userId = $userData['objectId'] ?? null;
+            $userId = is_array($userData) && isset($userData['objectId']) && is_string(
+                $userData['objectId']
+            ) ? $userData['objectId'] : null;
 
-            if (!$userId && isset($userData['code']) && $userData['code'] === 202) {
+            if (! $userId && is_array($userData) && isset($userData['code']) && $userData['code'] === 202) {
                 $io->note('User already exists, attempting login to get token...');
                 $response = $this->client->request('POST', $this->apiUrl . '/login', [
                     'headers' => $headers,
@@ -103,10 +105,22 @@ class OpenSignSetupCommand extends Command
                     ],
                 ]);
                 $loginData = json_decode($response->getBody()->getContents(), true);
-                $userId = $loginData['objectId'];
-                $sessionToken = $loginData['sessionToken'];
+                if (is_array($loginData) && isset($loginData['objectId']) && is_string(
+                    $loginData['objectId']
+                ) && isset($loginData['sessionToken']) && is_string($loginData['sessionToken'])) {
+                    $userId = $loginData['objectId'];
+                    $sessionToken = $loginData['sessionToken'];
+                } else {
+                    throw new \RuntimeException('Failed to login existing user');
+                }
             } else {
-                $sessionToken = $userData['sessionToken'] ?? '';
+                $sessionToken = is_array($userData) && isset($userData['sessionToken']) && is_string(
+                    $userData['sessionToken']
+                ) ? $userData['sessionToken'] : '';
+            }
+
+            if (! $userId) {
+                throw new \RuntimeException('Failed to create or login user');
             }
 
             $io->success('User ID: ' . $userId);
@@ -134,6 +148,9 @@ class OpenSignSetupCommand extends Command
                 ],
             ]);
             $tenantData = json_decode($response->getBody()->getContents(), true);
+            if (! is_array($tenantData) || ! isset($tenantData['objectId']) || ! is_string($tenantData['objectId'])) {
+                throw new \RuntimeException('Failed to create Tenant');
+            }
             $tenantId = $tenantData['objectId'];
             $io->success('Tenant ID: ' . $tenantId);
 
@@ -157,6 +174,9 @@ class OpenSignSetupCommand extends Command
                 ],
             ]);
             $orgData = json_decode($response->getBody()->getContents(), true);
+            if (! is_array($orgData) || ! isset($orgData['objectId']) || ! is_string($orgData['objectId'])) {
+                throw new \RuntimeException('Failed to create Organization');
+            }
             $orgId = $orgData['objectId'];
             $io->success('Organization ID: ' . $orgId);
 
@@ -175,6 +195,9 @@ class OpenSignSetupCommand extends Command
                 ],
             ]);
             $teamData = json_decode($response->getBody()->getContents(), true);
+            if (! is_array($teamData) || ! isset($teamData['objectId']) || ! is_string($teamData['objectId'])) {
+                throw new \RuntimeException('Failed to create Team');
+            }
             $teamId = $teamData['objectId'];
 
             // Self link for ancestors
@@ -226,10 +249,17 @@ class OpenSignSetupCommand extends Command
                             'objectId' => $teamId,
                         ],
                     ],
-                    'TourStatus' => [['loginTour' => true]],
+                    'TourStatus' => [[
+                        'loginTour' => true,
+                    ]],
                 ],
             ]);
             $profileData = json_decode($response->getBody()->getContents(), true);
+            if (! is_array($profileData) || ! isset($profileData['objectId']) || ! is_string(
+                $profileData['objectId']
+            )) {
+                throw new \RuntimeException('Failed to create Profile');
+            }
             $profileId = $profileData['objectId'];
 
             // Update Organization with ExtUserId
@@ -263,11 +293,22 @@ class OpenSignSetupCommand extends Command
                 'headers' => $headers,
                 'json' => [
                     'fields' => [
-                        'Name' => ['type' => 'String'],
-                        'URL' => ['type' => 'String'],
-                        'Signers' => ['type' => 'Array'],
-                        'Status' => ['type' => 'String'],
-                        'CreatedBy' => ['type' => 'Pointer', 'targetClass' => '_User'],
+                        'Name' => [
+                            'type' => 'String',
+                        ],
+                        'URL' => [
+                            'type' => 'String',
+                        ],
+                        'Signers' => [
+                            'type' => 'Array',
+                        ],
+                        'Status' => [
+                            'type' => 'String',
+                        ],
+                        'CreatedBy' => [
+                            'type' => 'Pointer',
+                            'targetClass' => '_User',
+                        ],
                     ],
                 ],
                 'http_errors' => false,

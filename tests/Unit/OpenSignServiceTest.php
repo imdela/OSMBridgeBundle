@@ -70,7 +70,11 @@ class OpenSignServiceTest extends TestCase
             ->method('request')
             ->willReturnCallback(function ($method, $uri, $options) {
                 if ($method === 'GET' && str_contains($uri, '/classes/contracts_Users')) {
-                    $responseBody = json_encode(['results' => [['objectId' => 'profile123']]]);
+                    $responseBody = json_encode([
+                        'results' => [[
+                            'objectId' => 'profile123',
+                        ]],
+                    ]);
                     return new Response(200, [], $responseBody ?: '');
                 }
 
@@ -80,7 +84,9 @@ class OpenSignServiceTest extends TestCase
                     $this->assertEquals('test-user-id', $options['json']['CreatedBy']['objectId']);
                     $this->assertEquals('Test Contract', $options['json']['Name']);
 
-                    $responseBody = json_encode(['objectId' => '12345']);
+                    $responseBody = json_encode([
+                        'objectId' => '12345',
+                    ]);
                     return new Response(201, [], $responseBody ?: '');
                 }
 
@@ -146,7 +152,11 @@ class OpenSignServiceTest extends TestCase
 
     public function testGetExtUserProfileId(): void
     {
-        $responseBody = json_encode(['results' => [['objectId' => 'profile123']]]);
+        $responseBody = json_encode([
+            'results' => [[
+                'objectId' => 'profile123',
+            ]],
+        ]);
         $this->client->expects($this->once())
             ->method('request')
             ->with(
@@ -169,19 +179,25 @@ class OpenSignServiceTest extends TestCase
             ->method('request')
             ->willReturnCallback(function ($method, $uri, $options) {
                 if ($method === 'POST' && str_contains($uri, '/users')) {
-                    $responseBody = json_encode(['objectId' => 'user123']);
+                    $responseBody = json_encode([
+                        'objectId' => 'user123',
+                    ]);
                     return new Response(201, [], $responseBody ?: '');
                 }
 
                 if ($method === 'GET' && str_contains($uri, '/classes/contracts_Contactbook')) {
-                    $responseBody = json_encode(['results' => []]);
+                    $responseBody = json_encode([
+                        'results' => [],
+                    ]);
                     return new Response(200, [], $responseBody ?: '');
                 }
 
                 if ($method === 'POST' && str_contains($uri, '/classes/contracts_Contactbook')) {
                     $this->assertEquals('guest@example.com', $options['json']['Email']);
                     $this->assertEquals('+1234567890', $options['json']['Phone']);
-                    $responseBody = json_encode(['objectId' => 'contact123']);
+                    $responseBody = json_encode([
+                        'objectId' => 'contact123',
+                    ]);
                     return new Response(201, [], $responseBody ?: '');
                 }
 
