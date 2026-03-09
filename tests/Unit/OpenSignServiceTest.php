@@ -45,12 +45,20 @@ class OpenSignServiceTest extends TestCase
                 'http://test-api-url/files/test.pdf',
                 $this->callback(function (array $options) {
                     return $options['headers']['X-Parse-Application-Id'] === 'test-app-id'
-                        && $options['body'] === 'dummy-content';
+                        && is_resource($options['body'])
+                        && stream_get_contents($options['body']) === 'dummy-content';
                 })
             )
             ->willReturn(new Response(201, [], $responseBody ?: ''));
 
-        $result = $this->service->uploadFile('test.pdf', 'dummy-content', 'application/pdf');
+        $tempFile = tempnam(sys_get_temp_dir(), 'test');
+        if ($tempFile !== false) {
+            file_put_contents($tempFile, 'dummy-content');
+            $result = $this->service->uploadFile('test.pdf', $tempFile, 'application/pdf');
+            unlink($tempFile);
+        } else {
+            $this->fail('Could not create temp file');
+        }
 
         $this->assertArrayHasKey('url', $result);
         $this->assertEquals('http://test-url/file.pdf', $result['url']);
@@ -58,28 +66,30 @@ class OpenSignServiceTest extends TestCase
 
     public function testCreateSignatureRequest(): void
     {
-        $responseBody = json_encode([
-            'objectId' => '12345',
-        ]);
-        $this->client->expects($this->once())
+        $this->client->expects($this->exactly(2))
             ->method('request')
-            ->with(
-                'POST',
-                'http://test-api-url/classes/contracts_Document',
-                $this->callback(function (array $options) {
-                    return $options['headers']['X-Parse-Session-Token'] === 'test-session-token'
-                        && isset($options['json']['Name'])
-                        && $options['json']['CreatedBy']['objectId'] === 'test-user-id';
-                })
-            )
-            ->willReturn(new Response(201, [], $responseBody ?: ''));
+            ->willReturnCallback(function ($method, $uri, $options) {
+                if ($method === 'GET' && str_contains($uri, '/classes/contracts_Users')) {
+                    $responseBody = json_encode(['results' => [['objectId' => 'profile123']]]);
+                    return new Response(200, [], $responseBody ?: '');
+                }
+
+                if ($method === 'POST' && str_contains($uri, '/classes/contracts_Document')) {
+                    $this->assertEquals('test-session-token', $options['headers']['X-Parse-Session-Token']);
+                    $this->assertEquals('profile123', $options['json']['ExtUserPtr']['objectId']);
+                    $this->assertEquals('test-user-id', $options['json']['CreatedBy']['objectId']);
+                    $this->assertEquals('Test Contract', $options['json']['Name']);
+
+                    $responseBody = json_encode(['objectId' => '12345']);
+                    return new Response(201, [], $responseBody ?: '');
+                }
+
+                throw new \RuntimeException(sprintf('Unexpected request: %s %s', $method, $uri));
+            });
 
         $payload = [
             'Name' => 'Test Contract',
             'URL' => 'http://test-url/file.pdf',
-            'Signers' => [[
-                'name' => 'Alice',
-            ]],
             'Status' => 'pending',
         ];
 
@@ -87,5 +97,98 @@ class OpenSignServiceTest extends TestCase
 
         $this->assertArrayHasKey('objectId', $result);
         $this->assertEquals('12345', $result['objectId']);
+    }
+
+    public function testProvisionUser(): void
+    {
+        $responseBody = json_encode([
+            'objectId' => 'user123',
+            'sessionToken' => 'token123',
+        ]);
+        $this->client->expects($this->once())
+            ->method('request')
+            ->with(
+                'POST',
+                'http://test-api-url/users',
+                $this->callback(function (array $options) {
+                    return $options['headers']['X-Parse-Master-Key'] === 'test-master-key'
+                        && $options['json']['username'] === 'newuser';
+                })
+            )
+            ->willReturn(new Response(201, [], $responseBody ?: ''));
+
+        $result = $this->service->provisionUser('newuser', 'pass', 'new@example.com', 'New User');
+
+        $this->assertEquals('user123', $result['objectId']);
+    }
+
+    public function testGetDocument(): void
+    {
+        $responseBody = json_encode([
+            'objectId' => 'doc123',
+            'Name' => 'Test Doc',
+        ]);
+        $this->client->expects($this->once())
+            ->method('request')
+            ->with(
+                'GET',
+                'http://test-api-url/classes/contracts_Document/doc123',
+                $this->callback(function (array $options) {
+                    return $options['headers']['X-Parse-Session-Token'] === 'test-session-token';
+                })
+            )
+            ->willReturn(new Response(200, [], $responseBody ?: ''));
+
+        $result = $this->service->getDocument('doc123');
+
+        $this->assertEquals('Test Doc', $result['Name']);
+    }
+
+    public function testGetExtUserProfileId(): void
+    {
+        $responseBody = json_encode(['results' => [['objectId' => 'profile123']]]);
+        $this->client->expects($this->once())
+            ->method('request')
+            ->with(
+                'GET',
+                $this->stringContains('/classes/contracts_Users'),
+                $this->callback(function (array $options) {
+                    return $options['headers']['X-Parse-Master-Key'] === 'test-master-key';
+                })
+            )
+            ->willReturn(new Response(200, [], $responseBody ?: ''));
+
+        $result = $this->service->getExtUserProfileId();
+
+        $this->assertEquals('profile123', $result);
+    }
+
+    public function testCreateGuestSigner(): void
+    {
+        $this->client->expects($this->exactly(3))
+            ->method('request')
+            ->willReturnCallback(function ($method, $uri, $options) {
+                if ($method === 'POST' && str_contains($uri, '/users')) {
+                    $responseBody = json_encode(['objectId' => 'user123']);
+                    return new Response(201, [], $responseBody ?: '');
+                }
+
+                if ($method === 'GET' && str_contains($uri, '/classes/contracts_Contactbook')) {
+                    $responseBody = json_encode(['results' => []]);
+                    return new Response(200, [], $responseBody ?: '');
+                }
+
+                if ($method === 'POST' && str_contains($uri, '/classes/contracts_Contactbook')) {
+                    $this->assertEquals('guest@example.com', $options['json']['Email']);
+                    $this->assertEquals('+1234567890', $options['json']['Phone']);
+                    $responseBody = json_encode(['objectId' => 'contact123']);
+                    return new Response(201, [], $responseBody ?: '');
+                }
+
+                throw new \RuntimeException(sprintf('Unexpected request: %s %s', $method, $uri));
+            });
+
+        $result = $this->service->createGuestSigner('guest@example.com', 'Guest User', '+1234567890');
+        $this->assertEquals('contact123', $result);
     }
 }
