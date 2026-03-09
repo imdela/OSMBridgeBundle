@@ -1,7 +1,10 @@
 services:
   _defaults:
-    autowire: true
     autoconfigure: true
+
+  Ossm\OssmBridgeBundle\Controller\:
+    resource: "../src/Controller"
+    tags: ["controller.service_arguments"]
 
   # OpenSign API Client
   Ossm\OssmBridgeBundle\Service\OpenSignService:
@@ -13,8 +16,8 @@ services:
       $userId: "%ossm_bridge.opensign.user_id%"
       $sessionToken: "%ossm_bridge.opensign.session_token%"
 
-  # Automation Command
   Ossm\OssmBridgeBundle\Command\OpenSignSetupCommand:
+    public: true
     arguments:
       $client: '@GuzzleHttp\Client'
       $appId: "%ossm_bridge.opensign.app_id%"
