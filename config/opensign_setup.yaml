@@ -1,0 +1,25 @@
+# Configuration for OpenSign initial setup
+# This defines the data used by 'task opensign:setup'
+
+admin:
+  name: "API System User"
+  email: "api.system@ossmb.com"
+  username: "api.system@ossmb.com"
+  password: "Api-password-123!"
+  phone: "+33123456789"
+  company: "OSSM Bridge Bundle Dev"
+  job_title: "Administrator"
+  industry: "Software"
+  timezone: "Europe/Paris"
+
+tenant:
+  name: "OSSM Bridge Bundle Dev"
+  is_active: true
+
+organization:
+  name: "OSSM Bridge Bundle Dev"
+  is_active: true
+
+team:
+  name: "All Users"
+  is_active: true
