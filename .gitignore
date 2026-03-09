@@ -3,3 +3,4 @@
 /var/
 /bin/
 /public/
+.phpunit.result.cache

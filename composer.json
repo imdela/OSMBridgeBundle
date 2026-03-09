@@ -9,7 +9,9 @@
 		"symfony/console": "6.4.*",
 		"symfony/framework-bundle": "6.4.*",
 		"symfony/http-kernel": "6.4.*",
-		"symfony/yaml": "6.4.*"
+		"symfony/yaml": "6.4.*",
+		"symfony/proxy-manager-bridge": "6.4.*",
+		"symfony/var-exporter": "6.4.*"
 	},
 	"require-dev": {
 		"digimax/dot-env-editor": "v1.2.2",
