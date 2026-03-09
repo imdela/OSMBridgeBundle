@@ -96,9 +96,6 @@ services:
   opensign-ui:
     image: opensign/opensign:main
     container_name: ossmb-opensign-ui
-    volumes:
-      - ./resources/scripts/opensign-ui-entrypoint.sh:/usr/src/app/entrypoint.sh
-    entrypoint: /usr/src/app/entrypoint.sh
     environment:
       - PUBLIC_URL=http://localhost:3006
       - REACT_APP_SERVERURL=http://localhost:3005/app

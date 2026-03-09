@@ -12,17 +12,6 @@ The bundle bridges three main systems communicating in a typical local/cloud net
 2.  **OpenSign Server**: The digital signature platform (Parse Server based). It manages documents, signers, and the legal audit trails.
 3.  **MinIO**: An S3-compatible file host to hold the raw physical PDF geometries.
 
-### 🔥 OpenSign UI Environment Hot-Patch
-
-OpenSign's frontend is a React Single Page Application (SPA). By default, React bakes environment variables (like `REACT_APP_SERVERURL` and `REACT_APP_APPID`) into the static HTML/JS assets at _build time_. This normally makes deploying a generic OpenSign UI Docker image across multiple environments (Dev, Staging, Prod) impossible without rebuilding the image each time.
-
-To solve this, the bundle includes a custom shell script: `resources/scripts/opensign-ui-entrypoint.sh`.
-
-**What this does:**
-When the OpenSign UI container boots, this shell script intercepts the startup. It reads the standard Docker runtime environment variables, writes them directly into a static `build/env.js` file as `window.RUNTIME_ENV = { ... }`, and then allows the container to boot up. The React app is patched to read from `window.RUNTIME_ENV` at runtime instead of relying on build-time variables.
-
-This is the exact script that allows you to dynamically point the pre-compiled OpenSign UI Docker container to your specific backend URL without rebuilding the image!
-
 ---
 
 ## ⚙️ Installation
