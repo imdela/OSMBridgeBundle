@@ -59,8 +59,7 @@ class OpenSignSetupCommand extends Command
         $io->title('OpenSign Bootstrap Setup');
 
         try {
-            // 1. Create User
-            $io->section('1. Creating API System User');
+            $io->section('Creating API System User');
             $response = $this->client->request('POST', $this->apiUrl . '/users', [
                 'headers' => [
                     'X-Parse-Application-Id' => $this->appId,
@@ -81,12 +80,11 @@ class OpenSignSetupCommand extends Command
             /** @var string|null $userId */
             $userId = $userData['objectId'] ?? null;
 
-            if (!$userId && isset($userData['code']) && $userData['code'] === 202) {
+            if (! $userId && isset($userData['code']) && $userData['code'] === 202) {
                 $io->note('User already exists, attempting login to get token...');
             }
 
-            // 2. Login to get Session Token
-            $io->section('2. Retrieving Session Token');
+            $io->section('Retrieving Session Token');
             $response = $this->client->request('POST', $this->apiUrl . '/login', [
                 'headers' => [
                     'X-Parse-Application-Id' => $this->appId,
@@ -109,8 +107,21 @@ class OpenSignSetupCommand extends Command
             $io->success('User ID: ' . $userId);
             $io->success('Session Token: ' . $sessionToken);
 
-            // 3. Setup Schema
-            $io->section('3. Initializing Schema (contracts_Document)');
+            $io->section('Initializing Tenant');
+            $this->client->request('POST', $this->apiUrl . '/classes/partners_Tenant', [
+                'headers' => [
+                    'X-Parse-Application-Id' => $this->appId,
+                    'X-Parse-Master-Key' => $this->masterKey,
+                    'Content-Type' => 'application/json',
+                ],
+                'json' => [
+                    'Domain' => null,
+                    'companyName' => 'OSSM Bridge Bundle Dev',
+                ],
+                'http_errors' => false,
+            ]);
+
+            $io->section('Initializing Schema');
             $this->client->request('POST', $this->apiUrl . '/schemas/contracts_Document', [
                 'headers' => [
                     'X-Parse-Application-Id' => $this->appId,
@@ -141,8 +152,7 @@ class OpenSignSetupCommand extends Command
             ]);
             $io->success('Schema initialized.');
 
-            // 4. Update ENV file
-            $io->section('4. Updating Environment File: ' . $envFile);
+            $io->section('Updating Environment File: ' . $envFile);
             $filePath = realpath($this->rootPath . '/' . $envFile);
             if ($filePath) {
                 $editor = DotEnvEditor::load($filePath, false);

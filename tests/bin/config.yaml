@@ -2,6 +2,6 @@ framework:
   test: true
 ossm_bridge:
   opensign:
-    app_id: "test-app-id"
-    master_key: "test-master-key"
-    api_url: "http://localhost:3000"
+    app_id: "opensign"
+    master_key: "dev-master-key"
+    api_url: "http://opensign:8080/app"

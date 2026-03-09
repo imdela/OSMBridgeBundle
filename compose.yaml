@@ -68,17 +68,17 @@ services:
     image: opensign/opensignserver:main
     container_name: ossmb-opensign
     ports:
-      - "3005:3000"
+      - "3005:8080"
     volumes:
       - ./resources/scripts/opensign-minio-patch.js:/usr/src/app/index.js
     environment:
       NODE_ENV: development
-      PORT: "3000"
+      PORT: "8080"
       USE_LOCAL: "false"
-      APP_ID: opensign-dev-app-id
-      MASTER_KEY: opensign-dev-master-key
-      SERVER_URL: http://opensign:3000/app
-      PUBLIC_SERVER_URL: http://localhost:3000/app
+      APP_ID: opensign
+      MASTER_KEY: dev-master-key
+      SERVER_URL: http://opensign:8080/app
+      PUBLIC_SERVER_URL: http://localhost:3005/app
       DATABASE_URI: mongodb://root:rootpass@ossmb-mongodb:27017/opensign?authSource=admin
       MONGODB_URI: mongodb://root:rootpass@ossmb-mongodb:27017/opensign?authSource=admin
       DO_ENDPOINT: http://minio:9000
@@ -90,6 +90,25 @@ services:
     depends_on:
       - ossmb-mongodb
       - ossmb-minio
+    networks:
+      - ossmb-net
+
+  opensign-ui:
+    image: opensign/opensign:main
+    container_name: ossmb-opensign-ui
+    volumes:
+      - ./resources/scripts/opensign-ui-entrypoint.sh:/usr/src/app/entrypoint.sh
+    entrypoint: /usr/src/app/entrypoint.sh
+    environment:
+      - PUBLIC_URL=http://localhost:3006
+      - REACT_APP_SERVERURL=http://localhost:3005/app
+      - REACT_APP_APPID=opensign
+      - REACT_APP_ALLOW_REGISTRATION=true
+    command: npm start
+    ports:
+      - "3006:3000"
+    depends_on:
+      - opensign
     networks:
       - ossmb-net
 
