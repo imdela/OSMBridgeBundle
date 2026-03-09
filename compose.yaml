@@ -1,18 +1,20 @@
 services:
   # Reference PHP service to show how to link with OpenSign
-  ai-php:
-    image: your-php-image
-    container_name: php
+  ossmb-php:
+    image: php:8.3-cli-alpine
+    container_name: ossmb-php
+    working_dir: /app
+    command: tail -f /dev/null
     env_file:
       - .env.dist
     volumes:
       - ./:/app
     networks:
-      - opensign-net
+      - ossmb-net
 
-  ai-minio:
+  ossmb-minio:
     image: quay.io/minio/minio
-    container_name: minio
+    container_name: ossmb-minio
     environment:
       MINIO_ENDPOINT: "http://localhost:9000"
       MINIO_ROOT_USER: admin
@@ -20,13 +22,13 @@ services:
     volumes:
       - minio_data:/data
     ports:
-      - "9001:9001"  # console Web UI
-      - "9000:9000"  # S3 API
+      - "9006:9001"  # console Web UI
+      - "9005:9000"  # S3 API
     networks:
-      opensign-net:
+      ossmb-net:
         aliases:
           - minio
-          - aion.minio # Critical for virtual hosting style
+          - ossmb.minio # Critical for virtual hosting style
     command: server /data --console-address ":9001"
     healthcheck:
       test: ["CMD", "mc", "ready", "local"]
@@ -36,37 +38,37 @@ services:
 
   minio-init:
     image: quay.io/minio/minio
-    container_name: minio-init
+    container_name: ossmb-minio-init
     depends_on:
-      ai-minio:
+      ossmb-minio:
         condition: service_healthy
     networks:
-      - opensign-net
+      - ossmb-net
     entrypoint: >
       /bin/sh -c "
       mc alias set myminio http://minio:9000 admin admin123;
-      mc mb myminio/aion --ignore-existing;
+      mc mb myminio/osmb --ignore-existing;
       mc admin user add myminio PejF8wMFAWF05hvteQqZ PeC2LtCO38Noenh6w1JCpcjiZPj31sQBfBwpgIij || true;
       mc admin policy attach myminio readwrite --user PejF8wMFAWF05hvteQqZ || true;
       exit 0;
       "
 
-  ai-mongodb:
+  ossmb-mongodb:
     image: mongo:8.2.5
-    container_name: mongodb
+    container_name: ossmb-mongodb
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: rootpass
     volumes:
       - mongodb_data:/data/db
     networks:
-      - opensign-net
+      - ossmb-net
 
   opensign:
     image: opensign/opensignserver:main
-    container_name: opensign
+    container_name: ossmb-opensign
     ports:
-      - "3000:3000"
+      - "3005:3000"
     volumes:
       - ./resources/scripts/opensign-minio-patch.js:/usr/src/app/index.js
     environment:
@@ -77,22 +79,22 @@ services:
       MASTER_KEY: opensign-dev-master-key
       SERVER_URL: http://opensign:3000/app
       PUBLIC_SERVER_URL: http://localhost:3000/app
-      DATABASE_URI: mongodb://root:rootpass@ai-mongodb:27017/opensign?authSource=admin
-      MONGODB_URI: mongodb://root:rootpass@ai-mongodb:27017/opensign?authSource=admin
+      DATABASE_URI: mongodb://root:rootpass@ossmb-mongodb:27017/opensign?authSource=admin
+      MONGODB_URI: mongodb://root:rootpass@ossmb-mongodb:27017/opensign?authSource=admin
       DO_ENDPOINT: http://minio:9000
-      DO_SPACE: aion
-      DO_BASEURL: http://localhost:9000/aion
+      DO_SPACE: osmb
+      DO_BASEURL: http://localhost:9000/osmb
       DO_REGION: us-east-1
       DO_ACCESS_KEY_ID: PejF8wMFAWF05hvteQqZ
       DO_SECRET_ACCESS_KEY: PeC2LtCO38Noenh6w1JCpcjiZPj31sQBfBwpgIij
     depends_on:
-      - ai-mongodb
-      - ai-minio
+      - ossmb-mongodb
+      - ossmb-minio
     networks:
-      - opensign-net
+      - ossmb-net
 
 networks:
-  opensign-net:
+  ossmb-net:
 
 volumes:
   minio_data:

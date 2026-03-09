@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Command;
+namespace Ossm\OssmBridgeBundle\Command;
 
 use Digimax\DotEnvEditor\DotEnvEditor;
 use GuzzleHttp\ClientInterface;
@@ -14,15 +14,19 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(
-    name: 'aion:opensign:setup',
+    name: 'ossmb:opensign:setup',
     description: 'Bootstrap OpenSign: creating user, getting session token, and initializing schema.',
 )]
 class OpenSignSetupCommand extends Command
 {
     private ClientInterface $client;
+
     private string $appId;
+
     private string $masterKey;
+
     private string $apiUrl;
+
     private string $rootPath;
 
     public function __construct(
@@ -49,7 +53,8 @@ class OpenSignSetupCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
-        $envFile = $input->getArgument('envFile');
+        $envFileArg = $input->getArgument('envFile');
+        $envFile = is_string($envFileArg) ? $envFileArg : '.env.dist';
 
         $io->title('OpenSign Bootstrap Setup');
 
@@ -63,9 +68,9 @@ class OpenSignSetupCommand extends Command
                     'Content-Type' => 'application/json',
                 ],
                 'json' => [
-                    'username' => 'api-system@aion.com',
+                    'username' => 'api-system@ossmb.com',
                     'password' => 'api-password-123',
-                    'email' => 'api-system@aion.com',
+                    'email' => 'api-system@ossmb.com',
                     'name' => 'API System User',
                 ],
                 'http_errors' => false,
@@ -76,7 +81,7 @@ class OpenSignSetupCommand extends Command
             /** @var string|null $userId */
             $userId = $userData['objectId'] ?? null;
 
-            if (!$userId && isset($userData['code']) && 202 === $userData['code']) {
+            if (!$userId && isset($userData['code']) && $userData['code'] === 202) {
                 $io->note('User already exists, attempting login to get token...');
             }
 
@@ -89,9 +94,9 @@ class OpenSignSetupCommand extends Command
                     'Content-Type' => 'application/json',
                 ],
                 'json' => [
-                    'username' => 'api-system@aion.com',
-                    'password' => 'api-password-123'
-                ]
+                    'username' => 'api-system@ossmb.com',
+                    'password' => 'api-password-123',
+                ],
             ]);
 
             /** @var array<string, mixed> $loginData */
@@ -114,11 +119,22 @@ class OpenSignSetupCommand extends Command
                 ],
                 'json' => [
                     'fields' => [
-                        'Name' => ['type' => 'String'],
-                        'URL' => ['type' => 'String'],
-                        'Signers' => ['type' => 'Array'],
-                        'Status' => ['type' => 'String'],
-                        'CreatedBy' => ['type' => 'Pointer', 'targetClass' => '_User'],
+                        'Name' => [
+                            'type' => 'String',
+                        ],
+                        'URL' => [
+                            'type' => 'String',
+                        ],
+                        'Signers' => [
+                            'type' => 'Array',
+                        ],
+                        'Status' => [
+                            'type' => 'String',
+                        ],
+                        'CreatedBy' => [
+                            'type' => 'Pointer',
+                            'targetClass' => '_User',
+                        ],
                     ],
                 ],
                 'http_errors' => false,

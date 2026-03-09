@@ -1,21 +1,103 @@
 version: "3"
 
+vars:
+  PHP_CONTAINER: ossmb-php
+  MONGO_CONTAINER: ossmb-mongodb
+  MINIO_CONTAINER: ossmb-minio
+  OPENSIGN_CONTAINER: ossmb-opensign
+  PHP_EXEC: docker compose exec {{.PHP_CONTAINER}}
+  ANALYSE_PATHS: '{{.CLI_ARGS | default "src tests"}}'
+
 tasks:
-  opensign:setup:
-    desc: "Bootstrap OpenSign (User, Token, Schema). Updates .env.dist and .env.test"
-    cmds:
-      - docker compose exec ai-php bin/console aion:opensign:setup .env.dist
-      - docker compose exec ai-php bin/console aion:opensign:setup .env.test
-      - echo "Setup complete. Run 'task restart' to apply changes."
+  # ─── Infrastructure ───────────────────────────────────────────────────────
 
-  opensign:reset:
-    desc: "Completely wipe OpenSign database and re-bootstrap from scratch"
-    cmds:
-      - echo "Wiping OpenSign database..."
-      - docker compose exec ai-mongodb mongosh opensign -u root -p rootpass --authenticationDatabase admin --eval "db.dropDatabase()"
-      - task opensign:setup
-
-  restart:
-    desc: "Restart containers to pick up env secrets"
+  up:
+    desc: "Start all containers in background"
     cmds:
       - docker compose up -d
+
+  down:
+    desc: "Stop all containers"
+    cmds:
+      - docker compose down
+
+  restart:
+    desc: |
+      Restart containers.
+      All containers (down + up): task restart
+      Specific container alias:   task restart -- php | mongo | minio | opensign
+    cmds:
+      - |
+        ALIAS="{{.CLI_ARGS}}"
+        case "$ALIAS" in
+          php)       docker compose restart {{.PHP_CONTAINER}} ;;
+          mongo)     docker compose restart {{.MONGO_CONTAINER}} ;;
+          minio)     docker compose restart {{.MINIO_CONTAINER}} ;;
+          opensign)  docker compose restart {{.OPENSIGN_CONTAINER}} ;;
+          "")
+            echo "♻️  Restarting all containers (down → up)..."
+            task down
+            task up
+            ;;
+          *)
+            echo "❌ Unknown alias '$ALIAS'. Use: php | mongo | minio | opensign"
+            exit 1
+            ;;
+        esac
+
+  logs:
+    desc: "Tail logs. Pass service name as arg: task logs -- ossmb-php"
+    cmds:
+      - docker compose logs -f {{.CLI_ARGS}}
+
+  # ─── OpenSign lifecycle ───────────────────────────────────────────────────
+
+  opensign:setup:
+    desc: "Bootstrap OpenSign (user, token, schema). Updates .env.dist and .env.test"
+    cmds:
+      - "{{.PHP_EXEC}} php tests/bin/console ossmb:opensign:setup .env.dist"
+      - "{{.PHP_EXEC}} php tests/bin/console ossmb:opensign:setup .env.test"
+      - echo "✅ Setup complete. Run 'task restart' to apply the new env variables."
+
+  opensign:reset:
+    desc: "Wipe OpenSign database and re-run setup from scratch"
+    cmds:
+      - echo "⚠️  Wiping OpenSign database..."
+      - >
+        docker compose exec {{.MONGO_CONTAINER}}
+        mongosh opensign -u root -p rootpass
+        --authenticationDatabase admin
+        --eval "db.dropDatabase()"
+      - task: opensign:setup
+
+  # ─── Static analysis ─────────────────────────────────────────────────────
+
+  phpstan:
+    desc: |
+      Run PHPStan static analysis.
+      Default paths: src tests
+      Override: task phpstan -- src
+    cmds:
+      - "{{.PHP_EXEC}} vendor/bin/phpstan analyse {{.ANALYSE_PATHS}}"
+
+  # ─── Code style ──────────────────────────────────────────────────────────
+
+  phpecs:
+    desc: |
+      Check (or fix) code style with EasyCodingStandard.
+      Check only:  task phpecs
+      Auto-fix:    task phpecs -- --fix
+      Custom path: task phpecs -- src --fix
+    cmds:
+      - "{{.PHP_EXEC}} vendor/bin/ecs check {{.ANALYSE_PATHS}}"
+
+  # ─── Tests ───────────────────────────────────────────────────────────────
+
+  tests:
+    desc: |
+      Run PHPUnit test suite.
+      All tests:      task tests
+      Specific suite: task tests -- --testsuite Unit
+      Specific file:  task tests -- tests/Unit/OpenSignServiceTest.php
+    cmds:
+      - '{{.PHP_EXEC}} vendor/bin/phpunit {{.CLI_ARGS | default "tests"}}'

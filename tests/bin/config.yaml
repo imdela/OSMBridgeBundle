@@ -1,0 +1,7 @@
+framework:
+  test: true
+ossm_bridge:
+  opensign:
+    app_id: "test-app-id"
+    master_key: "test-master-key"
+    api_url: "http://localhost:3000"

@@ -51,7 +51,7 @@ The integration requires specific networking and volume mounts.
 OpenSign's S3 client often tries to access buckets via `http://bucketname.minio:9000`. We must alias our MinIO container to support this.
 
 ```yaml
-ai-minio:
+ossmb-minio:
   image: quay.io/minio/minio
   networks:
     my-network:
@@ -113,8 +113,8 @@ Run this command inside the PHP container to bootstrap the entire environment. I
 
 ```bash
 # Inside the container
-bin/console opensign:setup .env.dist
-bin/console opensign:setup .env.test
+bin/console ossmb:opensign:setup .env.dist
+bin/console ossmb:opensign:setup .env.test
 ```
 
 ### 2. The Taskfile shortcut
@@ -164,7 +164,7 @@ The payload sent to OpenSign must match their internal naming convention:
 
 ```php
 $payload = [
-    'Name' => 'Timesheet Oct 2024',
+    'Name' => 'Contract Oct 2024',
     'URL' => $uploadResult['url'],
     'Signers' => [['name' => 'John Doe', 'email' => 'john@client.com']],
     'Placeholders' => [['name' => 'John Doe', 'email' => 'john@client.com']],

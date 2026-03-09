@@ -30,9 +30,9 @@ This branch contains the full infrastructure and service layer needed to integra
 ## 📂 Key Components
 
 - **Infrastructure**: `compose.yaml` and `resources/scripts/opensign-minio-patch.js` (S3 Patch).
-- **Services**: `App\Service\OpenSignService` (API Client).
-- **Commands**: `App\Command\OpenSignSetupCommand` (Automation).
-- **Docs**: [Full Integration Guide](DOCUMENTATION.md).
+- **Services**: `Osm\OssmBridgeBundle\Service\OpenSignService` (API Client).
+- **Commands**: `Osm\OssmBridgeBundle\Command\OpenSignSetupCommand` (Automation).
+- **Docs**: [Full Integration Guide](docs/DOCUMENTATION.md).
 
 ## 💡 Usage Example
 

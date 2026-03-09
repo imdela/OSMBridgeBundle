@@ -1,0 +1,1 @@
+{"version":2,"defects":[],"times":{"Ossm\\OssmBridgeBundle\\Tests\\Unit\\ConfigurationTest::testConfigTreeBuilds":0.013,"Ossm\\OssmBridgeBundle\\Tests\\Unit\\OpenSignServiceTest::testUploadFile":0.011,"Ossm\\OssmBridgeBundle\\Tests\\Unit\\OpenSignServiceTest::testCreateSignatureRequest":0}}

@@ -2,10 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Service;
+namespace Ossm\OssmBridgeBundle\Service;
 
 use GuzzleHttp\ClientInterface;
-use GuzzleHttp\Exception\GuzzleException;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
@@ -15,10 +14,15 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 class OpenSignService
 {
     private ClientInterface $client;
+
     private string $appId;
+
     private string $masterKey;
+
     private string $apiUrl;
+
     private string $userId;
+
     private string $sessionToken;
 
     public function __construct(
@@ -41,8 +45,6 @@ class OpenSignService
      * Uploads a file to OpenSign and returns the Parse File result.
      *
      * @return array<string, mixed>
-     *
-     * @throws GuzzleException
      */
     public function uploadFile(string $fileName, string $content, string $mimeType): array
     {
@@ -55,7 +57,7 @@ class OpenSignService
             'body' => $content,
         ]);
 
-        if (Response::HTTP_CREATED !== $response->getStatusCode()) {
+        if ($response->getStatusCode() !== Response::HTTP_CREATED) {
             throw new HttpException($response->getStatusCode(), 'Failed to upload file to OpenSign');
         }
 
@@ -73,8 +75,6 @@ class OpenSignService
      * @param array<string, mixed> $payload
      *
      * @return array<string, mixed>
-     *
-     * @throws GuzzleException
      */
     public function createSignatureRequest(array $payload): array
     {
@@ -93,7 +93,7 @@ class OpenSignService
             'json' => $payload,
         ]);
 
-        if (Response::HTTP_CREATED !== $response->getStatusCode()) {
+        if ($response->getStatusCode() !== Response::HTTP_CREATED) {
             throw new HttpException($response->getStatusCode(), 'Failed to create signature request in OpenSign');
         }
 

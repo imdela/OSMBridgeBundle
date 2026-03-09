@@ -4,22 +4,24 @@ services:
     autoconfigure: true
 
   # OpenSign API Client
-  App\Service\OpenSignService:
+  Ossm\OssmBridgeBundle\Service\OpenSignService:
     arguments:
       $client: '@GuzzleHttp\Client'
-      $appId: "%env(string:OPENSIGN_APP_ID)%"
-      $masterKey: "%env(string:OPENSIGN_MASTER_KEY)%"
-      $apiUrl: "%env(string:OPENSIGN_API_URL)%"
-      $userId: "%env(default::string:OPENSIGN_USER_ID)%"
-      $sessionToken: "%env(default::string:OPENSIGN_SESSION_TOKEN)%"
+      $appId: "%ossm_bridge.opensign.app_id%"
+      $masterKey: "%ossm_bridge.opensign.master_key%"
+      $apiUrl: "%ossm_bridge.opensign.api_url%"
+      $userId: "%ossm_bridge.opensign.user_id%"
+      $sessionToken: "%ossm_bridge.opensign.session_token%"
 
   # Automation Command
-  App\Command\OpenSignSetupCommand:
+  Ossm\OssmBridgeBundle\Command\OpenSignSetupCommand:
     arguments:
       $client: '@GuzzleHttp\Client'
-      $appId: "%env(string:OPENSIGN_APP_ID)%"
-      $masterKey: "%env(string:OPENSIGN_MASTER_KEY)%"
-      $apiUrl: "%env(string:OPENSIGN_API_URL)%"
+      $appId: "%ossm_bridge.opensign.app_id%"
+      $masterKey: "%ossm_bridge.opensign.master_key%"
+      $apiUrl: "%ossm_bridge.opensign.api_url%"
       $rootPath: "%kernel.project_dir%"
+    tags:
+      - { name: "console.command", command: "ossmb:opensign:setup" }
 
   GuzzleHttp\Client: ~
