@@ -194,7 +194,40 @@ class DocumentCompletedSubscriber implements EventSubscriberInterface
 
 ---
 
-## 🛑 Troubleshooting
+## 🐳 Docker & Taskfile Tips
 
-- **Container Boot Error**: If Symfony dies on compilation asserting `$appId is required`, it means your primary `.env` or `config/packages/ossm_bridge.yaml` is misconfigured. Ensure variables exist.
-- **Webhooks Ignored**: Ensure your main application's firewall allows unauthenticated `POST` payloads from OpenSign domains to route `/ossm/webhook` natively.
+If your host application runs inside Docker, use these shortcuts to make your life easier.
+
+### 1. Mapping the Bundle (Local Development)
+
+To work on this bundle and your app at the same time:
+
+```yaml
+# In host project's compose.yml
+services:
+  app:
+    volumes:
+      - .:/app
+      - /opt/yaovi/src/osm-bridge-bundle:/app/ossm-bridge-bundle
+```
+
+### 2. Required Taskfile Definition
+
+Add this to your host project's `Taskfile.yml` to run the bundle tools easily:
+
+```yaml
+tasks:
+  console:
+    cmds:
+      - docker compose exec staffos_app php bin/console {{.CLI_ARGS}}
+```
+
+### 3. Usage Examples
+
+```bash
+# Install the bundle's automated config
+task console -- ossmb:install
+
+# Bootstrap the OpenSign database
+task console -- ossmb:opensign:setup
+```
