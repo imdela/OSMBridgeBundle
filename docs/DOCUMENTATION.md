@@ -19,10 +19,35 @@ The bundle bridges three main systems communicating in a typical local/cloud net
 To install this standalone bundle into your principal business application:
 
 ```bash
-composer require ossm/ossm-bridge-bundle
+# 1. Add the private repository to your host project
+composer config repositories.ossm-bridge vcs git@github.com:imdela/OSMBridgeBundle.git
+
+# 2. Require the package
+composer require ossm/ossm-bridge-bundle:^1.0
 ```
 
-### 1. Register Bundle
+### ⚡ Automated Setup (Recommended)
+
+The bundle includes an automation utility to save you from manual configuration:
+
+```bash
+php bin/console ossmb:install
+```
+
+**What this command does:**
+
+- Automatically creates `config/packages/ossm_bridge.yaml`.
+- Enabled the webhook route in `config/routes/ossm_bridge.yaml`.
+- Appends `OPENSIGN_*` environment placeholders to your `.env` file.
+- Copies utility scripts (like the MinIO patch) to your `bin/` directory.
+
+---
+
+### 🛠️ Manual Configuration (Alternative)
+
+If you prefer to configure the bundle manually, follow these steps:
+
+#### 1. Register Bundle
 
 Ensure `config/bundles.php` contains the bridge:
 
@@ -33,9 +58,9 @@ return [
 ];
 ```
 
-### 2. Configure Environment
+#### 2. Configure Environment
 
-Update your main application's `.env` configuration file. These tokens are generated during the OpenSign setup (e.g., by running `task opensign:setup` inside the bundle environment):
+Update your main application's `.env` configuration file:
 
 ```env
 OPENSIGN_APP_ID=myAppId
@@ -45,7 +70,7 @@ OPENSIGN_USER_ID=myAdminUserId
 OPENSIGN_SESSION_TOKEN=myPermanentSessionToken
 ```
 
-### 3. Apply the YAML Configuration
+#### 3. Apply the YAML Configuration
 
 Create `config/packages/ossm_bridge.yaml` inside your primary application:
 
@@ -59,7 +84,7 @@ ossm_bridge:
     session_token: "%env(OPENSIGN_SESSION_TOKEN)%"
 ```
 
-### 4. Enable the Webhook Route
+#### 4. Enable the Webhook Route
 
 Inside `config/routes.yaml` of your principal application:
 
