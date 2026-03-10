@@ -59,6 +59,11 @@ tasks:
       - "{{.PHP_EXEC}} php tests/bin/console ossmb:opensign:setup .env.test"
       - echo "✅ Setup complete. Run 'task restart' to apply the new env variables."
 
+  bundle:install:
+    desc: "Run the bundle installation command (Test only)"
+    cmds:
+      - "{{.PHP_EXEC}} php tests/bin/console ossmb:install"
+
   opensign:reset:
     desc: "Wipe OpenSign database and re-run setup from scratch"
     cmds:
