@@ -35,7 +35,7 @@ class InstallCommand extends Command
         $targetConfig = $this->rootPath . '/config/packages/ossm_bridge.yaml';
         $templateConfig = __DIR__ . '/../../resources/templates/ossm_bridge.yaml';
 
-        if (!file_exists($templateConfig)) {
+        if (! file_exists($templateConfig)) {
             $io->error('Template configuration not found in bundle.');
 
             return Command::FAILURE;
@@ -49,21 +49,43 @@ class InstallCommand extends Command
                 $io->note('Skipped configuration copy.');
             }
         } else {
-            if (!is_dir(dirname($targetConfig))) {
+            if (! is_dir(dirname($targetConfig))) {
                 mkdir(dirname($targetConfig), 0777, true);
             }
             copy($templateConfig, $targetConfig);
             $io->success('Created config/packages/ossm_bridge.yaml');
         }
 
+        // 1.1 Copy Setup Configuration
+        if ($io->confirm('Copy opensign_setup.yaml to host app configuration (needed for setup command)?', true)) {
+            $io->section('1.1 Configuring Bootstrap (opensign_setup.yaml)');
+            $targetSetup = $this->rootPath . '/config/opensign_setup.yaml';
+            $templateSetup = __DIR__ . '/../../config/opensign_setup.yaml';
+            if (file_exists($templateSetup)) {
+                if (! file_exists($targetSetup) || $io->confirm(
+                    'config/opensign_setup.yaml already exists. Overwrite?',
+                    false
+                )) {
+                    if (! is_dir(dirname($targetSetup))) {
+                        mkdir(dirname($targetSetup), 0777, true);
+                    }
+                    copy($templateSetup, $targetSetup);
+                    $io->success('Created config/opensign_setup.yaml');
+                }
+            }
+        }
+
         // 2. Add Routes
         $io->section('2. Enabling Webhook Routes');
         $targetRoutes = $this->rootPath . '/config/routes/ossm_bridge.yaml';
-        if (!file_exists($targetRoutes)) {
-            if (!is_dir(dirname($targetRoutes))) {
+        if (! file_exists($targetRoutes)) {
+            if (! is_dir(dirname($targetRoutes))) {
                 mkdir(dirname($targetRoutes), 0777, true);
             }
-            file_put_contents($targetRoutes, "ossm_bridge_routes:\n  resource: \"@OssmBridgeBundle/config/routes.yaml\"\n");
+            file_put_contents(
+                $targetRoutes,
+                "ossm_bridge_routes:\n  resource: \"@OssmBridgeBundle/config/routes.yaml\"\n"
+            );
             $io->success('Enabled routes in config/routes/ossm_bridge.yaml');
         } else {
             $io->note('Routes already configured.');
@@ -74,6 +96,12 @@ class InstallCommand extends Command
         $envPath = $this->rootPath . '/.env';
         if (file_exists($envPath)) {
             $envContent = file_get_contents($envPath);
+            if ($envContent === false) {
+                $io->error('Failed to read .env file.');
+
+                return Command::FAILURE;
+            }
+
             $vars = [
                 'OPENSIGN_APP_ID' => 'myAppId',
                 'OPENSIGN_MASTER_KEY' => 'myMasterKey',
@@ -85,7 +113,7 @@ class InstallCommand extends Command
             $toAppend = "\n###> ossm/ossm-bridge-bundle ###\n";
             $needed = false;
             foreach ($vars as $var => $val) {
-                if (!str_contains($envContent, $var)) {
+                if (! str_contains($envContent, $var)) {
                     $toAppend .= $var . '=' . $val . "\n";
                     $needed = true;
                 }
@@ -105,17 +133,19 @@ class InstallCommand extends Command
         $scriptsDir = $this->rootPath . '/bin';
         $bundleScripts = __DIR__ . '/../../resources/scripts';
         if (is_dir($bundleScripts)) {
-            if (!is_dir($scriptsDir)) {
+            if (! is_dir($scriptsDir)) {
                 mkdir($scriptsDir, 0777, true);
             }
             $files = scandir($bundleScripts);
-            foreach ($files as $file) {
-                if ($file === '.' || $file === '..') {
-                    continue;
+            if (is_array($files)) {
+                foreach ($files as $file) {
+                    if ($file === '.' || $file === '..') {
+                        continue;
+                    }
+                    copy($bundleScripts . '/' . $file, $scriptsDir . '/' . $file);
+                    chmod($scriptsDir . '/' . $file, 0755);
+                    $io->success('Copied ' . $file . ' to bin/');
                 }
-                copy($bundleScripts . '/' . $file, $scriptsDir . '/' . $file);
-                chmod($scriptsDir . '/' . $file, 0755);
-                $io->success('Copied ' . $file . ' to bin/');
             }
         }
 
