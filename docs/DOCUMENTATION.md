@@ -24,6 +24,10 @@ composer config repositories.ossm-bridge vcs git@github.com:imdela/OSMBridgeBund
 
 # 2. Require the package
 composer require ossm/ossm-bridge-bundle:^1.0
+
+# 💡 Alternative: Use the latest code from the 'dev' branch
+# (The 'dev-' prefix tells composer to fetch a branch instead of a tag)
+composer require ossm/ossm-bridge-bundle:dev-dev
 ```
 
 ### ⚡ Automated Setup (Recommended)
