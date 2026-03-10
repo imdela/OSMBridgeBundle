@@ -48,7 +48,7 @@ class OpenSignService
      */
     public function uploadFile(string $fileName, string $filePath, string $mimeType): array
     {
-        if (! file_exists($filePath) || ! is_readable($filePath)) {
+        if (!file_exists($filePath) || !is_readable($filePath)) {
             throw new \InvalidArgumentException(sprintf('File not found or not readable: %s', $filePath));
         }
 
@@ -91,29 +91,16 @@ class OpenSignService
             ]),
         ];
 
-        $response = $this->client->request(
-            'GET',
-            sprintf('%s/classes/contracts_Users?%s', $this->apiUrl, http_build_query($query)),
-            [
-                'headers' => [
-                    'X-Parse-Application-Id' => $this->appId,
-                    'X-Parse-Master-Key' => $this->masterKey,
-                ],
-            ]
-        );
+        $response = $this->client->request('GET', sprintf('%s/classes/contracts_Users?%s', $this->apiUrl, http_build_query($query)), [
+            'headers' => [
+                'X-Parse-Application-Id' => $this->appId,
+                'X-Parse-Master-Key' => $this->masterKey,
+            ],
+        ]);
 
-        $content = $response->getBody()
-            ->getContents();
-        $data = json_decode($content, true);
+        $data = json_decode($response->getBody()->getContents(), true);
 
-        if (! is_array($data) || ! isset($data['results']) || ! is_array($data['results'])) {
-            return null;
-        }
-
-        /** @var array<int, array<string, mixed>> $results */
-        $results = $data['results'];
-
-        return isset($results[0]['objectId']) && is_string($results[0]['objectId']) ? $results[0]['objectId'] : null;
+        return $data['results'][0]['objectId'] ?? null;
     }
 
     /**
@@ -137,41 +124,21 @@ class OpenSignService
             'http_errors' => false,
         ]);
 
-        $content = $userResponse->getBody()
-            ->getContents();
-        $userData = json_decode($content, true);
-        $signerUserId = is_array($userData) && isset($userData['objectId']) && is_string(
-            $userData['objectId']
-        ) ? $userData['objectId'] : null;
+        $userData = json_decode($userResponse->getBody()->getContents(), true);
+        $signerUserId = $userData['objectId'] ?? null;
 
-        if (! $signerUserId && is_array($userData) && isset($userData['code']) && $userData['code'] === 202) {
-            $getRes = $this->client->request(
-                'GET',
-                sprintf('%s/users?where=%s', $this->apiUrl, urlencode((string) json_encode([
-                    'email' => $email,
-                ]))),
-                [
-                    'headers' => [
-                        'X-Parse-Application-Id' => $this->appId,
-                        'X-Parse-Master-Key' => $this->masterKey,
-                    ],
-                ]
-            );
-
-            $foundContent = $getRes->getBody()
-                ->getContents();
-            $userFound = json_decode($foundContent, true);
-
-            if (is_array($userFound) && isset($userFound['results']) && is_array($userFound['results'])) {
-                /** @var array<int, array<string, mixed>> $resArray */
-                $resArray = $userFound['results'];
-                if (isset($resArray[0]['objectId']) && is_string($resArray[0]['objectId'])) {
-                    $signerUserId = $resArray[0]['objectId'];
-                }
-            }
+        if (!$signerUserId && isset($userData['code']) && $userData['code'] === 202) {
+            $getRes = $this->client->request('GET', sprintf('%s/users?where=%s', $this->apiUrl, urlencode(json_encode(['email' => $email]))), [
+                'headers' => [
+                    'X-Parse-Application-Id' => $this->appId,
+                    'X-Parse-Master-Key' => $this->masterKey,
+                ],
+            ]);
+            $userFound = json_decode($getRes->getBody()->getContents(), true);
+            $signerUserId = $userFound['results'][0]['objectId'] ?? null;
         }
 
-        if (! $signerUserId) {
+        if (!$signerUserId) {
             throw new \RuntimeException(sprintf('Could not create or find user for signer email: %s', $email));
         }
 
@@ -184,31 +151,20 @@ class OpenSignService
                     'objectId' => $this->userId,
                 ],
                 'Email' => $email,
-                'IsDeleted' => [
-                    '$ne' => true,
-                ],
+                'IsDeleted' => ['$ne' => true],
             ]),
         ];
 
-        $getContactRes = $this->client->request(
-            'GET',
-            sprintf('%s/classes/contracts_Contactbook?%s', $this->apiUrl, http_build_query($contactQuery)),
-            [
-                'headers' => [
-                    'X-Parse-Application-Id' => $this->appId,
-                    'X-Parse-Session-Token' => $this->sessionToken,
-                ],
-            ]
-        );
-        $contactContent = $getContactRes->getBody()
-            ->getContents();
-        $getContactData = json_decode($contactContent, true);
+        $getContactRes = $this->client->request('GET', sprintf('%s/classes/contracts_Contactbook?%s', $this->apiUrl, http_build_query($contactQuery)), [
+            'headers' => [
+                'X-Parse-Application-Id' => $this->appId,
+                'X-Parse-Session-Token' => $this->sessionToken,
+            ],
+        ]);
+        $getContactData = json_decode($getContactRes->getBody()->getContents(), true);
 
-        if (is_array($getContactData) && ! empty($getContactData['results']) && is_array($getContactData['results'])) {
-            $firstResult = $getContactData['results'][0];
-            if (is_array($firstResult) && isset($firstResult['objectId']) && is_string($firstResult['objectId'])) {
-                return $firstResult['objectId'];
-            }
+        if (!empty($getContactData['results'])) {
+            return $getContactData['results'][0]['objectId'];
         }
 
         // 3. Create Contactbook Entry
@@ -242,13 +198,7 @@ class OpenSignService
             'json' => $contactPayload,
         ]);
 
-        $createdContactContent = $contactRes->getBody()
-            ->getContents();
-        $contactData = json_decode($createdContactContent, true);
-
-        if (! is_array($contactData) || ! isset($contactData['objectId']) || ! is_string($contactData['objectId'])) {
-            throw new \RuntimeException('Failed to create Contactbook entry');
-        }
+        $contactData = json_decode($contactRes->getBody()->getContents(), true);
 
         return $contactData['objectId'];
     }
@@ -341,16 +291,12 @@ class OpenSignService
      */
     public function getDocument(string $objectId): array
     {
-        $response = $this->client->request(
-            'GET',
-            sprintf('%s/classes/contracts_Document/%s', $this->apiUrl, $objectId),
-            [
-                'headers' => [
-                    'X-Parse-Application-Id' => $this->appId,
-                    'X-Parse-Session-Token' => $this->sessionToken,
-                ],
-            ]
-        );
+        $response = $this->client->request('GET', sprintf('%s/classes/contracts_Document/%s', $this->apiUrl, $objectId), [
+            'headers' => [
+                'X-Parse-Application-Id' => $this->appId,
+                'X-Parse-Session-Token' => $this->sessionToken,
+            ],
+        ]);
 
         if ($response->getStatusCode() !== Response::HTTP_OK) {
             throw new HttpException($response->getStatusCode(), 'Failed to retrieve document from OpenSign');

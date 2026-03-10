@@ -27,4 +27,11 @@ services:
     tags:
       - { name: "console.command", command: "ossmb:opensign:setup" }
 
+  Ossm\OssmBridgeBundle\Command\InstallCommand:
+    public: true
+    arguments:
+      $rootPath: "%kernel.project_dir%"
+    tags:
+      - { name: "console.command", command: "ossmb:install" }
+
   GuzzleHttp\Client: ~
