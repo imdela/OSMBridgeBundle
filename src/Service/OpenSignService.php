@@ -27,16 +27,16 @@ class OpenSignService
 
     public function __construct(
         ClientInterface $client,
-        string $appId,
-        string $masterKey,
-        string $apiUrl,
+        ?string $appId = null,
+        ?string $masterKey = null,
+        ?string $apiUrl = null,
         ?string $userId = null,
         ?string $sessionToken = null
     ) {
         $this->client = $client;
-        $this->appId = $appId;
-        $this->masterKey = $masterKey;
-        $this->apiUrl = rtrim($apiUrl, '/');
+        $this->appId = $appId ?? '';
+        $this->masterKey = $masterKey ?? '';
+        $this->apiUrl = rtrim($apiUrl ?? '', '/');
         $this->userId = $userId ?? '';
         $this->sessionToken = $sessionToken ?? '';
     }
@@ -95,11 +95,11 @@ class OpenSignService
             'GET',
             sprintf('%s/classes/contracts_Users?%s', $this->apiUrl, http_build_query($query)),
             [
-            'headers' => [
-                'X-Parse-Application-Id' => $this->appId,
-                'X-Parse-Master-Key' => $this->masterKey,
-            ],
-        ]
+                'headers' => [
+                    'X-Parse-Application-Id' => $this->appId,
+                    'X-Parse-Master-Key' => $this->masterKey,
+                ],
+            ]
         );
 
         $content = $response->getBody()
@@ -148,14 +148,14 @@ class OpenSignService
             $getRes = $this->client->request(
                 'GET',
                 sprintf('%s/users?where=%s', $this->apiUrl, urlencode((string) json_encode([
-                'email' => $email,
-            ]))),
+                    'email' => $email,
+                ]))),
                 [
-                'headers' => [
-                    'X-Parse-Application-Id' => $this->appId,
-                    'X-Parse-Master-Key' => $this->masterKey,
-                ],
-            ]
+                    'headers' => [
+                        'X-Parse-Application-Id' => $this->appId,
+                        'X-Parse-Master-Key' => $this->masterKey,
+                    ],
+                ]
             );
 
             $foundContent = $getRes->getBody()
@@ -194,11 +194,11 @@ class OpenSignService
             'GET',
             sprintf('%s/classes/contracts_Contactbook?%s', $this->apiUrl, http_build_query($contactQuery)),
             [
-            'headers' => [
-                'X-Parse-Application-Id' => $this->appId,
-                'X-Parse-Session-Token' => $this->sessionToken,
-            ],
-        ]
+                'headers' => [
+                    'X-Parse-Application-Id' => $this->appId,
+                    'X-Parse-Session-Token' => $this->sessionToken,
+                ],
+            ]
         );
         $contactContent = $getContactRes->getBody()
             ->getContents();
@@ -345,11 +345,11 @@ class OpenSignService
             'GET',
             sprintf('%s/classes/contracts_Document/%s', $this->apiUrl, $objectId),
             [
-            'headers' => [
-                'X-Parse-Application-Id' => $this->appId,
-                'X-Parse-Session-Token' => $this->sessionToken,
-            ],
-        ]
+                'headers' => [
+                    'X-Parse-Application-Id' => $this->appId,
+                    'X-Parse-Session-Token' => $this->sessionToken,
+                ],
+            ]
         );
 
         if ($response->getStatusCode() !== Response::HTTP_OK) {

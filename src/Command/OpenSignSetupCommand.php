@@ -31,17 +31,17 @@ class OpenSignSetupCommand extends Command
     private string $rootPath;
 
     public function __construct(
+        string $rootPath,
         ClientInterface $client,
-        string $appId,
-        string $masterKey,
-        string $apiUrl,
-        string $rootPath
+        ?string $appId = null,
+        ?string $masterKey = null,
+        ?string $apiUrl = null
     ) {
-        $this->client = $client;
-        $this->appId = $appId;
-        $this->masterKey = $masterKey;
-        $this->apiUrl = rtrim($apiUrl, '/');
         $this->rootPath = $rootPath;
+        $this->client = $client;
+        $this->appId = $appId ?? '';
+        $this->masterKey = $masterKey ?? '';
+        $this->apiUrl = rtrim($apiUrl ?? '', '/');
 
         parent::__construct();
     }
@@ -105,9 +105,11 @@ class OpenSignSetupCommand extends Command
                     ],
                 ]);
                 $loginData = json_decode($response->getBody()->getContents(), true);
-                if (is_array($loginData) && isset($loginData['objectId']) && is_string(
-                    $loginData['objectId']
-                ) && isset($loginData['sessionToken']) && is_string($loginData['sessionToken'])) {
+                if (
+                    is_array($loginData) && isset($loginData['objectId']) && is_string(
+                        $loginData['objectId']
+                    ) && isset($loginData['sessionToken']) && is_string($loginData['sessionToken'])
+                ) {
                     $userId = $loginData['objectId'];
                     $sessionToken = $loginData['sessionToken'];
                 } else {
@@ -249,15 +251,17 @@ class OpenSignSetupCommand extends Command
                             'objectId' => $teamId,
                         ],
                     ],
-                    'TourStatus' => [[
-                        'loginTour' => true,
-                    ]],
+                    'TourStatus' => [
+                        [
+                            'loginTour' => true,
+                        ],
+                    ],
                 ],
             ]);
             $profileData = json_decode($response->getBody()->getContents(), true);
-            if (! is_array($profileData) || ! isset($profileData['objectId']) || ! is_string(
-                $profileData['objectId']
-            )) {
+            if (
+                ! is_array($profileData) || ! isset($profileData['objectId']) || ! is_string($profileData['objectId'])
+            ) {
                 throw new \RuntimeException('Failed to create Profile');
             }
             $profileId = $profileData['objectId'];

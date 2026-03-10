@@ -19,11 +19,11 @@ services:
   Ossm\OssmBridgeBundle\Command\OpenSignSetupCommand:
     public: true
     arguments:
+      $rootPath: "%kernel.project_dir%"
       $client: '@GuzzleHttp\Client'
       $appId: "%ossm_bridge.opensign.app_id%"
       $masterKey: "%ossm_bridge.opensign.master_key%"
       $apiUrl: "%ossm_bridge.opensign.api_url%"
-      $rootPath: "%kernel.project_dir%"
     tags:
       - { name: "console.command", command: "ossmb:opensign:setup" }
 
