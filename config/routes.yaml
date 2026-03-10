@@ -1,4 +1,4 @@
 ossm_bridge_webhook:
   path: /ossm/webhook
-  controller: Ossm\OssmBridgeBundle\Controller\WebhookController::handle
+  controller: Ossm\OssmBridgeBundle\Controller\WebhookController
   methods: [POST]
