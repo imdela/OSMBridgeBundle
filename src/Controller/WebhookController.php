@@ -5,48 +5,48 @@ declare(strict_types=1);
 namespace Ossm\OssmBridgeBundle\Controller;
 
 use Ossm\OssmBridgeBundle\Event\DocumentSignedEvent;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
-class WebhookController
+class WebhookController extends AbstractController
 {
-    private EventDispatcherInterface $dispatcher;
+    private EventDispatcherInterface $eventDispatcher;
 
-    public function __construct(EventDispatcherInterface $dispatcher)
+    public function __construct(EventDispatcherInterface $eventDispatcher)
     {
-        $this->dispatcher = $dispatcher;
+        $this->eventDispatcher = $eventDispatcher;
     }
 
-    public function __invoke(Request $request): Response
+    public function __invoke(Request $request): JsonResponse
     {
-        $content = $request->getContent();
-        $payload = json_decode($content, true);
+        /** @var array<string, mixed>|null $payload */
+        $payload = json_decode($request->getContent(), true) ?: $request->request->all();
 
-        // Fallback for codeception / form-urlencoded payloads
-        if (! is_array($payload) || empty($payload)) {
-            $payload = $request->request->all();
+        if (!$payload) {
+            return new JsonResponse([
+                'status' => 'error',
+                'message' => 'Invalid JSON payload',
+            ], Response::HTTP_BAD_REQUEST);
         }
 
-        if (empty($payload)) {
-            return new Response('Invalid or missing payload', Response::HTTP_BAD_REQUEST);
+        // Validate webhook from OpenSign: usually OpenSign sends the Object and its status.
+        // E.g., OpenSign might send {"object": {"objectId": "123", "Status": "completed"}}
+        $object = $payload['object'] ?? $payload;
+
+        if (is_array($object) && isset($object['objectId'], $object['Status']) && $object['Status'] === 'completed') {
+            /** @var array<string, mixed> $object */
+            $objectId = $object['objectId'];
+            if (is_string($objectId)) {
+                $event = new DocumentSignedEvent($objectId, $object);
+                $this->eventDispatcher->dispatch($event, DocumentSignedEvent::NAME);
+            }
         }
 
-        // OpenSign typically sends the document under a specific key, like 'document'
-        // or just the document ID. Adapt to whatever the real payload structure is.
-        // Assuming either an objectId or the document itself includes objectId.
-        $documentId = $payload['objectId'] ?? $payload['document']['objectId'] ?? $payload['id'] ?? null;
-
-        if (! $documentId) {
-            // Alternatively, in advanced scenarios, maybe the entire payload goes into the event
-            // and the receiver handles it. We'll use a placeholder if we can't find it,
-            // or we could just pass the payload directly.
-            $documentId = 'unknown';
-        }
-
-        $event = new DocumentSignedEvent((string) $documentId, $payload);
-        $this->dispatcher->dispatch($event, DocumentSignedEvent::NAME);
-
-        return new Response('OK', Response::HTTP_OK);
+        return new JsonResponse([
+            'status' => 'success',
+        ]);
     }
 }

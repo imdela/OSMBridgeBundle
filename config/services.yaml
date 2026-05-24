@@ -1,6 +1,7 @@
 services:
   _defaults:
     autoconfigure: true
+    autowire: true
 
   Ossm\OssmBridgeBundle\Controller\:
     resource: "../src/Controller"
