@@ -13,10 +13,10 @@
 		"symfony/var-exporter": "^6.4 || ^7.0 || ^8.0"
 	},
 	"require-dev": {
-		"digimax/dot-env-editor": "v1.2.2",
 		"phpstan/phpstan": "^1.10",
 		"symplify/easy-coding-standard": "^12.1",
-		"phpunit/phpunit": "^10.5"
+		"phpunit/phpunit": "^10.5",
+		"larament/dot-env-editor": "^2.0"
 	},
 	"autoload": {
 		"psr-4": {

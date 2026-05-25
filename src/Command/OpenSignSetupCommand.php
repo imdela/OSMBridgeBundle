@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Ossm\OssmBridgeBundle\Command;
 
-use Digimax\DotEnvEditor\DotEnvEditor;
+use Larament\DotEnvEditor\DotEnvEditor;
 use GuzzleHttp\ClientInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
