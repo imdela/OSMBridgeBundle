@@ -15,17 +15,31 @@ class WebhookController extends AbstractController
 {
     private EventDispatcherInterface $eventDispatcher;
 
-    public function __construct(EventDispatcherInterface $eventDispatcher)
+    private string $webhookSecret;
+
+    public function __construct(EventDispatcherInterface $eventDispatcher, string $webhookSecret)
     {
         $this->eventDispatcher = $eventDispatcher;
+        $this->webhookSecret = $webhookSecret;
     }
 
     public function __invoke(Request $request): JsonResponse
     {
-        /** @var array<string, mixed>|null $payload */
-        $payload = json_decode($request->getContent(), true) ?: $request->request->all();
+        $rawBody = $request->getContent();
+        $receivedSignature = $request->headers->get('x-webhook-signature');
+        $expectedSignature = hash_hmac('sha256', $rawBody, $this->webhookSecret);
 
-        if (!$payload) {
+        if (! is_string($receivedSignature) || ! hash_equals($expectedSignature, $receivedSignature)) {
+            return new JsonResponse([
+                'status' => 'error',
+                'message' => 'Invalid or missing webhook signature',
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+
+        /** @var array<string, mixed>|null $payload */
+        $payload = json_decode($rawBody, true) ?: $request->request->all();
+
+        if (! $payload) {
             return new JsonResponse([
                 'status' => 'error',
                 'message' => 'Invalid JSON payload',

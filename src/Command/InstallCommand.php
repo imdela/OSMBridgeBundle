@@ -108,6 +108,7 @@ class InstallCommand extends Command
                 'OPENSIGN_API_URL' => 'http://localhost:8080/app',
                 'OPENSIGN_USER_ID' => '',
                 'OPENSIGN_SESSION_TOKEN' => '',
+                'OPENSIGN_WEBHOOK_SECRET' => '',
             ];
 
             $toAppend = "\n###> ossm/ossm-bridge-bundle ###\n";

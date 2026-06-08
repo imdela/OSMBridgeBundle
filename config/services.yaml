@@ -7,6 +7,10 @@ services:
     resource: "../src/Controller"
     tags: ["controller.service_arguments"]
 
+  Ossm\OssmBridgeBundle\Controller\WebhookController:
+    arguments:
+      $webhookSecret: "%ossm_bridge.webhook_secret%"
+
   # OpenSign API Client
   Ossm\OssmBridgeBundle\Service\OpenSignService:
     arguments:

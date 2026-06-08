@@ -29,5 +29,6 @@ class OssmBridgeExtension extends Extension
         $container->setParameter('ossm_bridge.opensign.api_url', $config['opensign']['api_url'] ?? null);
         $container->setParameter('ossm_bridge.opensign.user_id', $config['opensign']['user_id'] ?? null);
         $container->setParameter('ossm_bridge.opensign.session_token', $config['opensign']['session_token'] ?? null);
+        $container->setParameter('ossm_bridge.webhook_secret', $config['webhook_secret']);
     }
 }

@@ -72,7 +72,13 @@ OPENSIGN_MASTER_KEY=myMasterKey
 OPENSIGN_API_URL=http://opensign:8080/app
 OPENSIGN_USER_ID=myAdminUserId
 OPENSIGN_SESSION_TOKEN=myPermanentSessionToken
+OPENSIGN_WEBHOOK_SECRET=myWebhookSecurityKey
 ```
+
+`OPENSIGN_WEBHOOK_SECRET` must match the "Webhook Security Key" set in your OpenSign
+instance's webhook settings — it is used to verify the `x-webhook-signature` header
+(HMAC-SHA256) on every incoming webhook call. It is **required**: the bundle will
+refuse to boot if it is missing or empty.
 
 #### 3. Apply the YAML Configuration
 
@@ -86,6 +92,7 @@ ossm_bridge:
     api_url: "%env(OPENSIGN_API_URL)%"
     user_id: "%env(OPENSIGN_USER_ID)%"
     session_token: "%env(OPENSIGN_SESSION_TOKEN)%"
+  webhook_secret: "%env(OPENSIGN_WEBHOOK_SECRET)%"
 ```
 
 #### 4. Enable the Webhook Route
@@ -159,6 +166,10 @@ class ContractManagerService
 ### 2. Handling Completion via Webhooks
 
 When signers finish standardly via OpenSign, it fires a webhook payload to the registered path (`/ossm/webhook`). Under the hood, the bundle routes this payload natively and dispatches a robust Symfony Event!
+
+Every incoming call is verified against the `x-webhook-signature` header (HMAC-SHA256 of
+the raw request body, keyed with `OPENSIGN_WEBHOOK_SECRET`). Requests with a missing or
+invalid signature are rejected with `401 Unauthorized` before any event is dispatched.
 
 All your application needs to do is implement a standard `EventSubscriber`:
 

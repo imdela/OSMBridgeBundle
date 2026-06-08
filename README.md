@@ -50,7 +50,14 @@ To test or develop the bundle independently:
     OPENSIGN_API_URL=http://your-opensign-url/app
     OPENSIGN_USER_ID=your_system_user_id
     OPENSIGN_SESSION_TOKEN=your_session_token
+    OPENSIGN_WEBHOOK_SECRET=your_opensign_webhook_security_key
     ```
+
+    `OPENSIGN_WEBHOOK_SECRET` is **required** — it must match the "Webhook Security Key"
+    configured in your OpenSign instance's webhook settings. The bundle uses it to verify
+    the `x-webhook-signature` header (HMAC-SHA256) on every incoming webhook call, and
+    **refuses to boot if it is missing or empty**. Requests with a missing or invalid
+    signature are rejected with `401 Unauthorized`.
 
 4.  Add the bundle configuration (`config/packages/ossm_bridge.yaml`):
 
@@ -62,6 +69,7 @@ To test or develop the bundle independently:
         api_url: "%env(OPENSIGN_API_URL)%"
         user_id: "%env(OPENSIGN_USER_ID)%"
         session_token: "%env(OPENSIGN_SESSION_TOKEN)%"
+      webhook_secret: "%env(OPENSIGN_WEBHOOK_SECRET)%"
     ```
 
 5.  Register the Webhook routes (`config/routes.yaml`):
