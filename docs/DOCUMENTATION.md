@@ -19,15 +19,7 @@ The bundle bridges three main systems communicating in a typical local/cloud net
 To install this standalone bundle into your principal business application:
 
 ```bash
-# 1. Add the private repository to your host project
-composer config repositories.ossm-bridge vcs git@github.com:imdela/OSMBridgeBundle.git
-
-# 2. Require the package
-composer require ossm/ossm-bridge-bundle:^1.0
-
-# 💡 Alternative: Use the latest code from the 'dev' branch
-# (The 'dev-' prefix tells composer to fetch a branch instead of a tag)
-composer require ossm/ossm-bridge-bundle:dev-dev
+composer require ossm/ossm-bridge-bundle
 ```
 
 ### ⚡ Automated Setup (Recommended)
@@ -219,7 +211,7 @@ services:
   app:
     volumes:
       - .:/app
-      - /opt/yaovi/src/osm-bridge-bundle:/app/ossm-bridge-bundle
+      - /path/to/osm-bridge-bundle:/app/ossm-bridge-bundle
 ```
 
 ### 2. Required Taskfile Definition
@@ -230,7 +222,7 @@ Add this to your host project's `Taskfile.yml` to run the bundle tools easily:
 tasks:
   console:
     cmds:
-      - docker compose exec staffos_app php bin/console {{.CLI_ARGS}}
+      - docker compose exec app php bin/console {{.CLI_ARGS}}
 ```
 
 ### 3. Usage Examples
