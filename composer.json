@@ -22,10 +22,5 @@
 		"psr-4": {
 			"Ossm\\OssmBridgeBundle\\": "src/"
 		}
-	},
-	"config": {
-		"platform": {
-			"php": "8.3.0"
-		}
 	}
 }
