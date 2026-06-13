@@ -44,7 +44,7 @@ class OpenSignServiceTest extends TestCase
                 'POST',
                 'http://test-api-url/files/test.pdf',
                 $this->callback(function (array $options) {
-                    return $options['headers']['X-Parse-Application-Id'] === 'test-app-id'
+                    return self::header($options, 'X-Parse-Application-Id') === 'test-app-id'
                         && is_resource($options['body'])
                         && stream_get_contents($options['body']) === 'dummy-content';
                 })
@@ -68,7 +68,7 @@ class OpenSignServiceTest extends TestCase
     {
         $this->client->expects($this->exactly(2))
             ->method('request')
-            ->willReturnCallback(function ($method, $uri, $options) {
+            ->willReturnCallback(function (string $method, string $uri, array $options) {
                 if ($method === 'GET' && str_contains($uri, '/classes/contracts_Users')) {
                     $responseBody = json_encode([
                         'results' => [[
@@ -79,10 +79,12 @@ class OpenSignServiceTest extends TestCase
                 }
 
                 if ($method === 'POST' && str_contains($uri, '/classes/contracts_Document')) {
-                    $this->assertEquals('test-session-token', $options['headers']['X-Parse-Session-Token']);
-                    $this->assertEquals('profile123', $options['json']['ExtUserPtr']['objectId']);
-                    $this->assertEquals('test-user-id', $options['json']['CreatedBy']['objectId']);
-                    $this->assertEquals('Test Contract', $options['json']['Name']);
+                    $extUserPtr = self::jsonField($options, 'ExtUserPtr');
+                    $createdBy = self::jsonField($options, 'CreatedBy');
+                    $this->assertEquals('test-session-token', self::header($options, 'X-Parse-Session-Token'));
+                    $this->assertEquals('profile123', is_array($extUserPtr) ? $extUserPtr['objectId'] : null);
+                    $this->assertEquals('test-user-id', is_array($createdBy) ? $createdBy['objectId'] : null);
+                    $this->assertEquals('Test Contract', self::jsonField($options, 'Name'));
 
                     $responseBody = json_encode([
                         'objectId' => '12345',
@@ -117,8 +119,8 @@ class OpenSignServiceTest extends TestCase
                 'POST',
                 'http://test-api-url/users',
                 $this->callback(function (array $options) {
-                    return $options['headers']['X-Parse-Master-Key'] === 'test-master-key'
-                        && $options['json']['username'] === 'newuser';
+                    return self::header($options, 'X-Parse-Master-Key') === 'test-master-key'
+                        && self::jsonField($options, 'username') === 'newuser';
                 })
             )
             ->willReturn(new Response(201, [], $responseBody ?: ''));
@@ -140,7 +142,7 @@ class OpenSignServiceTest extends TestCase
                 'GET',
                 'http://test-api-url/classes/contracts_Document/doc123',
                 $this->callback(function (array $options) {
-                    return $options['headers']['X-Parse-Session-Token'] === 'test-session-token';
+                    return self::header($options, 'X-Parse-Session-Token') === 'test-session-token';
                 })
             )
             ->willReturn(new Response(200, [], $responseBody ?: ''));
@@ -163,7 +165,7 @@ class OpenSignServiceTest extends TestCase
                 'GET',
                 $this->stringContains('/classes/contracts_Users'),
                 $this->callback(function (array $options) {
-                    return $options['headers']['X-Parse-Master-Key'] === 'test-master-key';
+                    return self::header($options, 'X-Parse-Master-Key') === 'test-master-key';
                 })
             )
             ->willReturn(new Response(200, [], $responseBody ?: ''));
@@ -177,7 +179,7 @@ class OpenSignServiceTest extends TestCase
     {
         $this->client->expects($this->exactly(3))
             ->method('request')
-            ->willReturnCallback(function ($method, $uri, $options) {
+            ->willReturnCallback(function (string $method, string $uri, array $options) {
                 if ($method === 'POST' && str_contains($uri, '/users')) {
                     $responseBody = json_encode([
                         'objectId' => 'user123',
@@ -193,8 +195,8 @@ class OpenSignServiceTest extends TestCase
                 }
 
                 if ($method === 'POST' && str_contains($uri, '/classes/contracts_Contactbook')) {
-                    $this->assertEquals('guest@example.com', $options['json']['Email']);
-                    $this->assertEquals('+1234567890', $options['json']['Phone']);
+                    $this->assertEquals('guest@example.com', self::jsonField($options, 'Email'));
+                    $this->assertEquals('+1234567890', self::jsonField($options, 'Phone'));
                     $responseBody = json_encode([
                         'objectId' => 'contact123',
                     ]);
@@ -206,5 +208,19 @@ class OpenSignServiceTest extends TestCase
 
         $result = $this->service->createGuestSigner('guest@example.com', 'Guest User', '+1234567890');
         $this->assertEquals('contact123', $result);
+    }
+
+    private static function header(mixed $options, string $name): mixed
+    {
+        $headers = is_array($options) ? $options['headers'] ?? null : null;
+
+        return is_array($headers) ? $headers[$name] ?? null : null;
+    }
+
+    private static function jsonField(mixed $options, string $name): mixed
+    {
+        $json = is_array($options) ? $options['json'] ?? null : null;
+
+        return is_array($json) ? $json[$name] ?? null : null;
     }
 }

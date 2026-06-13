@@ -22,13 +22,29 @@ class OssmBridgeExtension extends Extension
         $loader = new YamlFileLoader($container, new FileLocator(__DIR__ . '/../../config'));
         $loader->load('services.yaml');
 
+        $opensign = is_array($config['opensign'] ?? null) ? $config['opensign'] : [];
+
         // Note: According to the development guidelines, we do not set default empty values.
         // We ensure these parameters are always passed down properly so validation fails if empty.
-        $container->setParameter('ossm_bridge.opensign.app_id', $config['opensign']['app_id'] ?? null);
-        $container->setParameter('ossm_bridge.opensign.master_key', $config['opensign']['master_key'] ?? null);
-        $container->setParameter('ossm_bridge.opensign.api_url', $config['opensign']['api_url'] ?? null);
-        $container->setParameter('ossm_bridge.opensign.user_id', $config['opensign']['user_id'] ?? null);
-        $container->setParameter('ossm_bridge.opensign.session_token', $config['opensign']['session_token'] ?? null);
-        $container->setParameter('ossm_bridge.webhook_secret', $config['webhook_secret']);
+        $container->setParameter('ossm_bridge.opensign.app_id', $this->stringOrNull($opensign['app_id'] ?? null));
+        $container->setParameter(
+            'ossm_bridge.opensign.master_key',
+            $this->stringOrNull($opensign['master_key'] ?? null)
+        );
+        $container->setParameter('ossm_bridge.opensign.api_url', $this->stringOrNull($opensign['api_url'] ?? null));
+        $container->setParameter('ossm_bridge.opensign.user_id', $this->stringOrNull($opensign['user_id'] ?? null));
+        $container->setParameter(
+            'ossm_bridge.opensign.session_token',
+            $this->stringOrNull($opensign['session_token'] ?? null)
+        );
+        $container->setParameter(
+            'ossm_bridge.webhook_secret',
+            $this->stringOrNull($config['webhook_secret'] ?? null) ?? ''
+        );
+    }
+
+    private function stringOrNull(mixed $value): ?string
+    {
+        return is_scalar($value) ? (string) $value : null;
     }
 }

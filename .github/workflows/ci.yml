@@ -14,6 +14,12 @@ jobs:
       matrix:
         php: ['8.2', '8.3', '8.4']
         symfony: ['6.4.*', '7.4.*', '8.0.*']
+        exclude:
+          # symfony/*:8.0.* requires PHP >=8.4
+          - php: '8.2'
+            symfony: '8.0.*'
+          - php: '8.3'
+            symfony: '8.0.*'
 
     steps:
       - name: Checkout
@@ -36,7 +42,7 @@ jobs:
             "symfony/var-exporter:${{ matrix.symfony }}"
 
       - name: Install dependencies
-        run: composer update --prefer-dist --no-progress --no-interaction
+        run: composer update --with-all-dependencies --prefer-dist --no-progress --no-interaction
 
       - name: Security audit
         run: composer audit
