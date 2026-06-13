@@ -35,9 +35,6 @@ Tracks known limitations, unresolved CVEs, and planned work for
 
 ## Known limitations
 
-- Symfony 6.4 / 7.x / 8.x compatibility is asserted by the `composer.json`
-  version constraints but not yet verified by a CI matrix across all three
-  — CI covering this is planned (see CHANGELOG `[Unreleased]`).
 - The README installation path has been reviewed but not yet validated by
   installing the bundle from scratch into a fresh host application.
 
