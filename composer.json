@@ -1,6 +1,6 @@
 {
 	"name": "ossm/ossm-bridge-bundle",
-	"description": "OSMBridgeBundle: Blueprint for integrating OpenSign with MinIO in a Symfony project",
+	"description": "Symfony bundle bridging OpenSign (e-signature) and MinIO/S3 object storage",
 	"type": "symfony-bundle",
 	"license": "MIT",
 	"require": {
