@@ -1,3 +1,7 @@
+<p align="center">
+    <img src="https://raw.githubusercontent.com/imdela/OSMBridgeBundle/main/media/images/logo.png" alt="OSSM Bridge" width="200">
+</p>
+
 # OSSMBridgeBundle
 
 This Symfony bundle provides the complete infrastructure and service layer needed to integrate **OpenSign** and **MinIO** into any Symfony project.
