@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Ossm\OssmBridgeBundle\Command;
 
-use Larament\DotEnvEditor\DotEnvEditor;
 use GuzzleHttp\ClientInterface;
+use Larament\DotEnvEditor\DotEnvEditor;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
