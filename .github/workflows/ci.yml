@@ -55,3 +55,15 @@ jobs:
 
       - name: Tests (PHPUnit)
         run: vendor/bin/phpunit
+
+  # Branch protection on main requires a single stable status-check
+  # context, but the matrix job above reports one check per PHP/Symfony
+  # combination. This gate succeeds only when every matrix run has
+  # passed, giving the CI workflow one check named "quality".
+  quality-gate:
+    name: quality
+    needs: quality
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify quality matrix
+        run: echo "All quality matrix jobs passed"
