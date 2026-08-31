@@ -4,6 +4,8 @@
 
 # OSSMBridgeBundle
 
+> `ossm` stands for **Open Source Software Mosaics**.
+
 This Symfony bundle provides the complete infrastructure and service layer needed to integrate **OpenSign** and **MinIO** into any Symfony project.
 
 ## 🚀 Quick Start (Development)

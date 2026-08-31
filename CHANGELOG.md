@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.2] - 2026-08-31
+
+### Added
+
+- README documents the `ossm` namespace meaning: **Open Source Software Mosaics**.
+
 ## [0.3.0] - 2026-08-28
 
 ### Security
@@ -90,7 +96,9 @@ Initial standalone extraction and stabilization of the bundle.
 - Webhook controller structure and payload validation refactored (`e935dc3`).
 - Restored PHPStan level max and ECS compliance (`2907574`, `da5c9d1`).
 
-[Unreleased]: https://github.com/imdela/OSMBridgeBundle/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/imdela/OSMBridgeBundle/compare/v0.3.2...HEAD
+[0.3.2]: https://github.com/imdela/OSMBridgeBundle/compare/v0.3.1...v0.3.2
+[0.3.1]: https://github.com/imdela/OSMBridgeBundle/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/imdela/OSMBridgeBundle/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/imdela/OSMBridgeBundle/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/imdela/OSMBridgeBundle/releases/tag/v0.1.0
