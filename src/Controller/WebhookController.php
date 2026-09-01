@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Ossm\OssmBridgeBundle\Controller;
+namespace Mosl\OpenSignBridgeBundle\Controller;
 
-use Ossm\OssmBridgeBundle\Event\DocumentSignedEvent;
+use Mosl\OpenSignBridgeBundle\Event\DocumentSignedEvent;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;

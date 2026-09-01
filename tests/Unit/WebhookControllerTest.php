@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Ossm\OssmBridgeBundle\Tests\Unit;
+namespace Mosl\OpenSignBridgeBundle\Tests\Unit;
 
-use Ossm\OssmBridgeBundle\Controller\WebhookController;
-use Ossm\OssmBridgeBundle\Event\DocumentSignedEvent;
+use Mosl\OpenSignBridgeBundle\Controller\WebhookController;
+use Mosl\OpenSignBridgeBundle\Event\DocumentSignedEvent;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
@@ -34,7 +34,7 @@ class WebhookControllerTest extends TestCase
         $this->eventDispatcher->expects($this->never())
             ->method('dispatch');
 
-        $request = Request::create('/ossm/webhook', 'POST', [], [], [], [], '{}');
+        $request = Request::create('/opensign/webhook', 'POST', [], [], [], [], '{}');
         $response = ($this->controller)($request);
 
         $this->assertSame(Response::HTTP_UNAUTHORIZED, $response->getStatusCode());
@@ -76,7 +76,7 @@ class WebhookControllerTest extends TestCase
     {
         $signature = hash_hmac('sha256', $body, $secret ?? self::SECRET);
 
-        return Request::create('/ossm/webhook', 'POST', [], [], [], [], $body)
+        return Request::create('/opensign/webhook', 'POST', [], [], [], [], $body)
             ->duplicate(null, null, null, null, null, [
                 'HTTP_X_WEBHOOK_SIGNATURE' => $signature,
             ]);

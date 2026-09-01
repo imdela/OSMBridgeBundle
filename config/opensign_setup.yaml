@@ -3,21 +3,21 @@
 
 admin:
   name: "API System User"
-  email: "api.system@ossmb.com"
-  username: "api.system@ossmb.com"
+  email: "api.system@opensignb.com"
+  username: "api.system@opensignb.com"
   password: "Api-password-123!"
   phone: "+33123456789"
-  company: "OSSM Bridge Bundle Dev"
+  company: "OpenSign Bridge Bundle Dev"
   job_title: "Administrator"
   industry: "Software"
   timezone: "Europe/Paris"
 
 tenant:
-  name: "OSSM Bridge Bundle Dev"
+  name: "OpenSign Bridge Bundle Dev"
   is_active: true
 
 organization:
-  name: "OSSM Bridge Bundle Dev"
+  name: "OpenSign Bridge Bundle Dev"
   is_active: true
 
 team:

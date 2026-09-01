@@ -1,4 +1,4 @@
-ossm_bridge:
+opensign_bridge:
   opensign:
     app_id: "%env(OPENSIGN_APP_ID)%"
     master_key: "%env(OPENSIGN_MASTER_KEY)%"

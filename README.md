@@ -1,10 +1,10 @@
 <p align="center">
-    <img src="https://raw.githubusercontent.com/imdela/OSMBridgeBundle/main/media/images/logo.png" alt="OSSM Bridge" width="200">
+    <img src="https://raw.githubusercontent.com/imdela/OpenSignBridgeBundle/main/media/images/logo.png" alt="OpenSign Bridge" width="200">
 </p>
 
-# OSSMBridgeBundle
+# OpenSignBridgeBundle
 
-> `ossm` stands for **Open Source Software Mosaics**.
+> `mosl` stands for **Mosaic OpenSource Library**.
 
 This Symfony bundle provides the complete infrastructure and service layer needed to integrate **OpenSign** and **MinIO** into any Symfony project.
 
@@ -36,7 +36,7 @@ To test or develop the bundle independently:
 1.  Require the bundle via Composer:
 
     ```bash
-    composer require ossm/ossm-bridge-bundle
+    composer require mosl/opensign-bridge-bundle
     ```
 
 2.  Ensure the bundle is registered in `config/bundles.php`:
@@ -44,7 +44,7 @@ To test or develop the bundle independently:
     ```php
     return [
         // ...
-        Ossm\OssmBridgeBundle\OssmBridgeBundle::class => ['all' => true],
+        Mosl\OpenSignBridgeBundle\OpenSignBridgeBundle::class => ['all' => true],
     ];
     ```
 
@@ -65,10 +65,10 @@ To test or develop the bundle independently:
     **refuses to boot if it is missing or empty**. Requests with a missing or invalid
     signature are rejected with `401 Unauthorized`.
 
-4.  Add the bundle configuration (`config/packages/ossm_bridge.yaml`):
+4.  Add the bundle configuration (`config/packages/opensign_bridge.yaml`):
 
     ```yaml
-    ossm_bridge:
+    opensign_bridge:
       opensign:
         app_id: "%env(OPENSIGN_APP_ID)%"
         master_key: "%env(OPENSIGN_MASTER_KEY)%"
@@ -81,8 +81,8 @@ To test or develop the bundle independently:
 5.  Register the Webhook routes (`config/routes.yaml`):
 
     ```yaml
-    ossm_bridge_routes:
-      resource: "@OssmBridgeBundle/config/routes.yaml"
+    opensign_bridge_routes:
+      resource: "@OpenSignBridgeBundle/config/routes.yaml"
     ```
 
 ## 📖 Documentation

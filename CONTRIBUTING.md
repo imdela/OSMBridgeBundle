@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for considering a contribution to `ossm/ossm-bridge-bundle`.
+Thanks for considering a contribution to `mosl/opensign-bridge-bundle`.
 
 ## Branches
 

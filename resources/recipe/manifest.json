@@ -1,11 +1,11 @@
 {
     "bundles": {
-        "Ossm\\OssmBridgeBundle\\OssmBridgeBundle": [
+        "Mosl\\OpenSignBridgeBundle\\OpenSignBridgeBundle": [
             "all"
         ]
     },
     "copy-from-package": {
-        "resources/templates/ossm_bridge.yaml": "%CONFIG_DIR%/packages/ossm_bridge.yaml",
+        "resources/templates/opensign_bridge.yaml": "%CONFIG_DIR%/packages/opensign_bridge.yaml",
         "config/opensign_setup.yaml": "%CONFIG_DIR%/opensign_setup.yaml",
         "resources/scripts/opensign-minio-patch.js": "bin/opensign-minio-patch.js"
     },

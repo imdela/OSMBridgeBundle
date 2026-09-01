@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Ossm\OssmBridgeBundle\Tests\Unit;
+namespace Mosl\OpenSignBridgeBundle\Tests\Unit;
 
-use Ossm\OssmBridgeBundle\DependencyInjection\Configuration;
+use Mosl\OpenSignBridgeBundle\DependencyInjection\Configuration;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
 class ConfigurationTest extends KernelTestCase
@@ -13,6 +13,6 @@ class ConfigurationTest extends KernelTestCase
     {
         $configuration = new Configuration();
         $treeBuilder = $configuration->getConfigTreeBuilder();
-        $this->assertSame('ossm_bridge', $treeBuilder->buildTree()->getName());
+        $this->assertSame('opensign_bridge', $treeBuilder->buildTree()->getName());
     }
 }

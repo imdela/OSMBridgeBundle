@@ -1,7 +1,7 @@
 # Known Issues
 
 Tracks known limitations, unresolved CVEs, and planned work for
-`ossm/ossm-bridge-bundle`. Updated whenever a related fix ships — see
+`mosl/opensign-bridge-bundle`. Updated whenever a related fix ships — see
 [CHANGELOG.md](CHANGELOG.md) for what has already been released.
 
 ## Infrastructure dependencies

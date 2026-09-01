@@ -1,10 +1,10 @@
 version: "3"
 
 vars:
-  PHP_CONTAINER: ossmb-php
-  MONGO_CONTAINER: ossmb-mongodb
-  MINIO_CONTAINER: ossmb-minio
-  OPENSIGN_CONTAINER: ossmb-opensign
+  PHP_CONTAINER: opensignb-php
+  MONGO_CONTAINER: opensignb-mongodb
+  MINIO_CONTAINER: opensignb-minio
+  OPENSIGN_CONTAINER: opensignb-opensign
   PHP_EXEC: docker compose exec {{.PHP_CONTAINER}}
   ANALYSE_PATHS: '{{.CLI_ARGS | default "src tests"}}'
 
@@ -46,7 +46,7 @@ tasks:
         esac
 
   logs:
-    desc: "Tail logs. Pass service name as arg: task logs -- ossmb-php"
+    desc: "Tail logs. Pass service name as arg: task logs -- opensignb-php"
     cmds:
       - docker compose logs -f {{.CLI_ARGS}}
 
@@ -55,14 +55,14 @@ tasks:
   opensign:setup:
     desc: "Bootstrap OpenSign (user, token, schema). Updates .env.dist and .env.test"
     cmds:
-      - "{{.PHP_EXEC}} php tests/bin/console ossmb:opensign:setup .env.dist"
-      - "{{.PHP_EXEC}} php tests/bin/console ossmb:opensign:setup .env.test"
+      - "{{.PHP_EXEC}} php tests/bin/console opensignb:opensign:setup .env.dist"
+      - "{{.PHP_EXEC}} php tests/bin/console opensignb:opensign:setup .env.test"
       - echo "✅ Setup complete. Run 'task restart' to apply the new env variables."
 
   bundle:install:
     desc: "Run the bundle installation command (Test only)"
     cmds:
-      - "{{.PHP_EXEC}} php tests/bin/console ossmb:install"
+      - "{{.PHP_EXEC}} php tests/bin/console opensignb:install"
 
   opensign:reset:
     desc: "Wipe OpenSign database and re-run setup from scratch"

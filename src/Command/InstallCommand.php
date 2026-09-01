@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Ossm\OssmBridgeBundle\Command;
+namespace Mosl\OpenSignBridgeBundle\Command;
 
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -11,7 +11,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(
-    name: 'ossmb:install',
+    name: 'opensignb:install',
     description: 'Automates the initial configuration: copies config templates and sets up environment variables.',
 )]
 class InstallCommand extends Command
@@ -28,12 +28,12 @@ class InstallCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
-        $io->title('OSSMBridgeBundle Installation Utility');
+        $io->title('OpenSignBridgeBundle Installation Utility');
 
         // 1. Copy Configuration
-        $io->section('1. Configuring Bundle (ossm_bridge.yaml)');
-        $targetConfig = $this->rootPath . '/config/packages/ossm_bridge.yaml';
-        $templateConfig = __DIR__ . '/../../resources/templates/ossm_bridge.yaml';
+        $io->section('1. Configuring Bundle (opensign_bridge.yaml)');
+        $targetConfig = $this->rootPath . '/config/packages/opensign_bridge.yaml';
+        $templateConfig = __DIR__ . '/../../resources/templates/opensign_bridge.yaml';
 
         if (! file_exists($templateConfig)) {
             $io->error('Template configuration not found in bundle.');
@@ -42,7 +42,7 @@ class InstallCommand extends Command
         }
 
         if (file_exists($targetConfig)) {
-            if ($io->confirm('config/packages/ossm_bridge.yaml already exists. Overwrite?', false)) {
+            if ($io->confirm('config/packages/opensign_bridge.yaml already exists. Overwrite?', false)) {
                 copy($templateConfig, $targetConfig);
                 $io->success('Configuration overwritten.');
             } else {
@@ -53,7 +53,7 @@ class InstallCommand extends Command
                 mkdir(dirname($targetConfig), 0777, true);
             }
             copy($templateConfig, $targetConfig);
-            $io->success('Created config/packages/ossm_bridge.yaml');
+            $io->success('Created config/packages/opensign_bridge.yaml');
         }
 
         // 1.1 Copy Setup Configuration
@@ -77,16 +77,16 @@ class InstallCommand extends Command
 
         // 2. Add Routes
         $io->section('2. Enabling Webhook Routes');
-        $targetRoutes = $this->rootPath . '/config/routes/ossm_bridge.yaml';
+        $targetRoutes = $this->rootPath . '/config/routes/opensign_bridge.yaml';
         if (! file_exists($targetRoutes)) {
             if (! is_dir(dirname($targetRoutes))) {
                 mkdir(dirname($targetRoutes), 0777, true);
             }
             file_put_contents(
                 $targetRoutes,
-                "ossm_bridge_routes:\n  resource: \"@OssmBridgeBundle/config/routes.yaml\"\n"
+                "opensign_bridge_routes:\n  resource: \"@OpenSignBridgeBundle/config/routes.yaml\"\n"
             );
-            $io->success('Enabled routes in config/routes/ossm_bridge.yaml');
+            $io->success('Enabled routes in config/routes/opensign_bridge.yaml');
         } else {
             $io->note('Routes already configured.');
         }
@@ -111,7 +111,7 @@ class InstallCommand extends Command
                 'OPENSIGN_WEBHOOK_SECRET' => '',
             ];
 
-            $toAppend = "\n###> ossm/ossm-bridge-bundle ###\n";
+            $toAppend = "\n###> mosl/opensign-bridge-bundle ###\n";
             $needed = false;
             foreach ($vars as $var => $val) {
                 if (! str_contains($envContent, $var)) {
@@ -119,7 +119,7 @@ class InstallCommand extends Command
                     $needed = true;
                 }
             }
-            $toAppend .= "###< ossm/ossm-bridge-bundle ###\n";
+            $toAppend .= "###< mosl/opensign-bridge-bundle ###\n";
 
             if ($needed) {
                 file_put_contents($envPath, $toAppend, FILE_APPEND);

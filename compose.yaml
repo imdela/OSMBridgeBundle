@@ -1,8 +1,8 @@
 services:
   # Reference PHP service to show how to link with OpenSign
-  ossmb-php:
+  opensignb-php:
     image: php:8.3-cli-alpine
-    container_name: ossmb-php
+    container_name: opensignb-php
     working_dir: /app
     command: tail -f /dev/null
     env_file:
@@ -10,11 +10,11 @@ services:
     volumes:
       - ./:/app
     networks:
-      - ossmb-net
+      - opensignb-net
 
-  ossmb-minio:
+  opensignb-minio:
     image: ghcr.io/imdela/minio:RELEASE.2025-09-07T16-13-09Z
-    container_name: ossmb-minio
+    container_name: opensignb-minio
     environment:
       MINIO_ENDPOINT: "http://localhost:9000"
       MINIO_ROOT_USER: admin
@@ -25,10 +25,10 @@ services:
       - "9006:9001"  # console Web UI
       - "9005:9000"  # S3 API
     networks:
-      ossmb-net:
+      opensignb-net:
         aliases:
           - minio
-          - ossmb.minio # Critical for virtual hosting style
+          - opensignb.minio # Critical for virtual hosting style
     command: server /data --console-address ":9001"
     healthcheck:
       test: ["CMD", "mc", "ready", "local"]
@@ -38,12 +38,12 @@ services:
 
   minio-init:
     image: ghcr.io/imdela/minio:RELEASE.2025-09-07T16-13-09Z
-    container_name: ossmb-minio-init
+    container_name: opensignb-minio-init
     depends_on:
-      ossmb-minio:
+      opensignb-minio:
         condition: service_healthy
     networks:
-      - ossmb-net
+      - opensignb-net
     entrypoint: >
       /bin/sh -c "
       mc alias set myminio http://minio:9000 admin admin123;
@@ -53,20 +53,20 @@ services:
       exit 0;
       "
 
-  ossmb-mongodb:
+  opensignb-mongodb:
     image: mongo:8.2.5
-    container_name: ossmb-mongodb
+    container_name: opensignb-mongodb
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: rootpass
     volumes:
       - mongodb_data:/data/db
     networks:
-      - ossmb-net
+      - opensignb-net
 
   opensign:
     image: opensign/opensignserver:main
-    container_name: ossmb-opensign
+    container_name: opensignb-opensign
     ports:
       - "3005:8080"
     volumes:
@@ -79,8 +79,8 @@ services:
       MASTER_KEY: dev-master-key
       SERVER_URL: http://opensign:8080/app
       PUBLIC_SERVER_URL: http://localhost:3005/app
-      DATABASE_URI: mongodb://root:rootpass@ossmb-mongodb:27017/opensign?authSource=admin
-      MONGODB_URI: mongodb://root:rootpass@ossmb-mongodb:27017/opensign?authSource=admin
+      DATABASE_URI: mongodb://root:rootpass@opensignb-mongodb:27017/opensign?authSource=admin
+      MONGODB_URI: mongodb://root:rootpass@opensignb-mongodb:27017/opensign?authSource=admin
       DO_ENDPOINT: http://minio:9000
       DO_SPACE: osmb
       DO_BASEURL: http://localhost:9000/osmb
@@ -88,14 +88,14 @@ services:
       DO_ACCESS_KEY_ID: PejF8wMFAWF05hvteQqZ
       DO_SECRET_ACCESS_KEY: PeC2LtCO38Noenh6w1JCpcjiZPj31sQBfBwpgIij
     depends_on:
-      - ossmb-mongodb
-      - ossmb-minio
+      - opensignb-mongodb
+      - opensignb-minio
     networks:
-      - ossmb-net
+      - opensignb-net
 
   opensign-ui:
     image: opensign/opensign:main
-    container_name: ossmb-opensign-ui
+    container_name: opensignb-opensign-ui
     environment:
       - PUBLIC_URL=http://localhost:3006
       - REACT_APP_SERVERURL=http://localhost:3005/app
@@ -107,10 +107,10 @@ services:
     depends_on:
       - opensign
     networks:
-      - ossmb-net
+      - opensignb-net
 
 networks:
-  ossmb-net:
+  opensignb-net:
 
 volumes:
   minio_data:

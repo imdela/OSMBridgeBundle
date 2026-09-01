@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Ossm\OssmBridgeBundle\Service;
+namespace Mosl\OpenSignBridgeBundle\Service;
 
 use GuzzleHttp\ClientInterface;
 use Symfony\Component\HttpFoundation\Response;

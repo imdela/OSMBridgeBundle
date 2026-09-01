@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Ossm\OssmBridgeBundle\Event;
+namespace Mosl\OpenSignBridgeBundle\Event;
 
 use Symfony\Contracts\EventDispatcher\Event;
 
@@ -11,7 +11,7 @@ use Symfony\Contracts\EventDispatcher\Event;
  */
 class DocumentSignedEvent extends Event
 {
-    public const NAME = 'ossm_bridge.document.signed';
+    public const NAME = 'opensign_bridge.document.signed';
 
     private string $documentId;
 

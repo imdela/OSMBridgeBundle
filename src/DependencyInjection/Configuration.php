@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Ossm\OssmBridgeBundle\DependencyInjection;
+namespace Mosl\OpenSignBridgeBundle\DependencyInjection;
 
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
@@ -12,7 +12,7 @@ class Configuration implements ConfigurationInterface
 {
     public function getConfigTreeBuilder(): TreeBuilder
     {
-        $treeBuilder = new TreeBuilder('ossm_bridge');
+        $treeBuilder = new TreeBuilder('opensign_bridge');
 
         /** @var ArrayNodeDefinition $rootNode */
         $rootNode = $treeBuilder->getRootNode();

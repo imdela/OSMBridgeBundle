@@ -3,40 +3,40 @@ services:
     autoconfigure: true
     autowire: true
 
-  Ossm\OssmBridgeBundle\Controller\:
+  Mosl\OpenSignBridgeBundle\Controller\:
     resource: "../src/Controller"
     tags: ["controller.service_arguments"]
 
-  Ossm\OssmBridgeBundle\Controller\WebhookController:
+  Mosl\OpenSignBridgeBundle\Controller\WebhookController:
     arguments:
-      $webhookSecret: "%ossm_bridge.webhook_secret%"
+      $webhookSecret: "%opensign_bridge.webhook_secret%"
 
   # OpenSign API Client
-  Ossm\OssmBridgeBundle\Service\OpenSignService:
+  Mosl\OpenSignBridgeBundle\Service\OpenSignService:
     arguments:
       $client: '@GuzzleHttp\Client'
-      $appId: "%ossm_bridge.opensign.app_id%"
-      $masterKey: "%ossm_bridge.opensign.master_key%"
-      $apiUrl: "%ossm_bridge.opensign.api_url%"
-      $userId: "%ossm_bridge.opensign.user_id%"
-      $sessionToken: "%ossm_bridge.opensign.session_token%"
+      $appId: "%opensign_bridge.opensign.app_id%"
+      $masterKey: "%opensign_bridge.opensign.master_key%"
+      $apiUrl: "%opensign_bridge.opensign.api_url%"
+      $userId: "%opensign_bridge.opensign.user_id%"
+      $sessionToken: "%opensign_bridge.opensign.session_token%"
 
-  Ossm\OssmBridgeBundle\Command\OpenSignSetupCommand:
+  Mosl\OpenSignBridgeBundle\Command\OpenSignSetupCommand:
     public: true
     arguments:
       $rootPath: "%kernel.project_dir%"
       $client: '@GuzzleHttp\Client'
-      $appId: "%ossm_bridge.opensign.app_id%"
-      $masterKey: "%ossm_bridge.opensign.master_key%"
-      $apiUrl: "%ossm_bridge.opensign.api_url%"
+      $appId: "%opensign_bridge.opensign.app_id%"
+      $masterKey: "%opensign_bridge.opensign.master_key%"
+      $apiUrl: "%opensign_bridge.opensign.api_url%"
     tags:
-      - { name: "console.command", command: "ossmb:opensign:setup" }
+      - { name: "console.command", command: "opensignb:opensign:setup" }
 
-  Ossm\OssmBridgeBundle\Command\InstallCommand:
+  Mosl\OpenSignBridgeBundle\Command\InstallCommand:
     public: true
     arguments:
       $rootPath: "%kernel.project_dir%"
     tags:
-      - { name: "console.command", command: "ossmb:install" }
+      - { name: "console.command", command: "opensignb:install" }
 
   GuzzleHttp\Client: ~

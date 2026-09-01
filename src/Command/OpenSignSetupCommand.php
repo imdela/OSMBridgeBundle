@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Ossm\OssmBridgeBundle\Command;
+namespace Mosl\OpenSignBridgeBundle\Command;
 
 use GuzzleHttp\ClientInterface;
 use Larament\DotEnvEditor\DotEnvEditor;
@@ -15,7 +15,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Yaml\Yaml;
 
 #[AsCommand(
-    name: 'ossmb:opensign:setup',
+    name: 'opensignb:opensign:setup',
     description: 'Bootstrap OpenSign: complete system setup (user, tenant, organization, team, profile).',
 )]
 class OpenSignSetupCommand extends Command

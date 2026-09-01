@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Ossm\OssmBridgeBundle\Tests\Unit;
+namespace Mosl\OpenSignBridgeBundle\Tests\Unit;
 
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Psr7\Response;
-use Ossm\OssmBridgeBundle\Service\OpenSignService;
+use Mosl\OpenSignBridgeBundle\Service\OpenSignService;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 

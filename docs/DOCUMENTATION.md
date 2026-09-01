@@ -1,6 +1,6 @@
-# OSSMBridgeBundle Integration Guide
+# OpenSignBridgeBundle Integration Guide
 
-This guide describes the architecture, configuration, and practical usage required to successfully integrate **OpenSign** with **MinIO** via the `OSSMBridgeBundle` across any Symfony application.
+This guide describes the architecture, configuration, and practical usage required to successfully integrate **OpenSign** with **MinIO** via the `OpenSignBridgeBundle` across any Symfony application.
 
 ---
 
@@ -19,7 +19,7 @@ The bundle bridges three main systems communicating in a typical local/cloud net
 To install this standalone bundle into your principal business application:
 
 ```bash
-composer require ossm/ossm-bridge-bundle
+composer require mosl/opensign-bridge-bundle
 ```
 
 ### ⚡ Automated Setup (Recommended)
@@ -27,13 +27,13 @@ composer require ossm/ossm-bridge-bundle
 The bundle includes an automation utility to save you from manual configuration:
 
 ```bash
-php bin/console ossmb:install
+php bin/console opensignb:install
 ```
 
 **What this command does:**
 
-- Automatically creates `config/packages/ossm_bridge.yaml`.
-- Enabled the webhook route in `config/routes/ossm_bridge.yaml`.
+- Automatically creates `config/packages/opensign_bridge.yaml`.
+- Enabled the webhook route in `config/routes/opensign_bridge.yaml`.
 - Appends `OPENSIGN_*` environment placeholders to your `.env` file.
 - Copies utility scripts (like the MinIO patch) to your `bin/` directory.
 
@@ -50,7 +50,7 @@ Ensure `config/bundles.php` contains the bridge:
 ```php
 return [
     // ...
-    Ossm\OssmBridgeBundle\OssmBridgeBundle::class => ['all' => true],
+    Mosl\OpenSignBridgeBundle\OpenSignBridgeBundle::class => ['all' => true],
 ];
 ```
 
@@ -74,10 +74,10 @@ refuse to boot if it is missing or empty.
 
 #### 3. Apply the YAML Configuration
 
-Create `config/packages/ossm_bridge.yaml` inside your primary application:
+Create `config/packages/opensign_bridge.yaml` inside your primary application:
 
 ```yaml
-ossm_bridge:
+opensign_bridge:
   opensign:
     app_id: "%env(OPENSIGN_APP_ID)%"
     master_key: "%env(OPENSIGN_MASTER_KEY)%"
@@ -92,8 +92,8 @@ ossm_bridge:
 Inside `config/routes.yaml` of your principal application:
 
 ```yaml
-ossm_bridge_routes:
-  resource: "@OssmBridgeBundle/config/routes.yaml"
+opensign_bridge_routes:
+  resource: "@OpenSignBridgeBundle/config/routes.yaml"
 ```
 
 ---
@@ -110,7 +110,7 @@ To send a signature process from any service in your application, inject `OpenSi
 <?php
 namespace App\Service;
 
-use Ossm\OssmBridgeBundle\Service\OpenSignService;
+use Mosl\OpenSignBridgeBundle\Service\OpenSignService;
 
 class ContractManagerService
 {
@@ -157,7 +157,7 @@ class ContractManagerService
 
 ### 2. Handling Completion via Webhooks
 
-When signers finish standardly via OpenSign, it fires a webhook payload to the registered path (`/ossm/webhook`). Under the hood, the bundle routes this payload natively and dispatches a robust Symfony Event!
+When signers finish standardly via OpenSign, it fires a webhook payload to the registered path (`/opensign/webhook`). Under the hood, the bundle routes this payload natively and dispatches a robust Symfony Event!
 
 Every incoming call is verified against the `x-webhook-signature` header (HMAC-SHA256 of
 the raw request body, keyed with `OPENSIGN_WEBHOOK_SECRET`). Requests with a missing or
@@ -169,7 +169,7 @@ All your application needs to do is implement a standard `EventSubscriber`:
 <?php
 namespace App\EventSubscriber;
 
-use Ossm\OssmBridgeBundle\Event\DocumentSignedEvent;
+use Mosl\OpenSignBridgeBundle\Event\DocumentSignedEvent;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 class DocumentCompletedSubscriber implements EventSubscriberInterface
@@ -211,7 +211,7 @@ services:
   app:
     volumes:
       - .:/app
-      - /path/to/osm-bridge-bundle:/app/ossm-bridge-bundle
+      - /path/to/opensign-bridge-bundle:/app/opensign-bridge-bundle
 ```
 
 ### 2. Required Taskfile Definition
@@ -229,8 +229,8 @@ tasks:
 
 ```bash
 # Install the bundle's automated config
-task console -- ossmb:install
+task console -- opensignb:install
 
 # Bootstrap the OpenSign database
-task console -- ossmb:opensign:setup
+task console -- opensignb:opensign:setup
 ```
