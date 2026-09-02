@@ -5,7 +5,7 @@ admin:
   name: "API System User"
   email: "api.system@opensignb.com"
   username: "api.system@opensignb.com"
-  password: "Api-password-123!"
+  password: "CHANGE-ME-BEFORE-RUNNING-opensignb-opensign-setup"
   phone: "+33123456789"
   company: "OpenSign Bridge Bundle Dev"
   job_title: "Administrator"

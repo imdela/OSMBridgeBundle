@@ -6,12 +6,14 @@ namespace Mosl\OpenSignBridgeBundle\Command;
 
 use GuzzleHttp\ClientInterface;
 use Larament\DotEnvEditor\DotEnvEditor;
+use Rollerworks\Component\PasswordStrength\Validator\Constraints\PasswordStrength;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
+use Symfony\Component\Validator\Validation;
 use Symfony\Component\Yaml\Yaml;
 
 #[AsCommand(
@@ -20,6 +22,13 @@ use Symfony\Component\Yaml\Yaml;
 )]
 class OpenSignSetupCommand extends Command
 {
+    /**
+     * The literal placeholder shipped in config/opensign_setup.yaml. Running
+     * setup with this value would provision the OpenSign admin account with a
+     * password anyone who has read this bundle's source already knows.
+     */
+    private const string PLACEHOLDER_PASSWORD = 'CHANGE-ME-BEFORE-RUNNING-opensignb-opensign-setup';
+
     private ClientInterface $client;
 
     private string $appId;
@@ -68,6 +77,33 @@ class OpenSignSetupCommand extends Command
 
         /** @var array<string, array<string, string|bool>> $config */
         $config = Yaml::parseFile($configPath);
+
+        $password = $config['admin']['password'] ?? '';
+        if (! is_string($password)) {
+            $io->error('config/opensign_setup.yaml: admin.password must be a string.');
+
+            return Command::FAILURE;
+        }
+
+        if (hash_equals(self::PLACEHOLDER_PASSWORD, $password)) {
+            $io->error(
+                'config/opensign_setup.yaml still has the placeholder admin password. '
+                . 'Edit admin.password before running this command against any real OpenSign instance.'
+            );
+
+            return Command::FAILURE;
+        }
+
+        $validator = Validation::createValidator();
+        $violations = $validator->validate($password, new PasswordStrength(minLength: 12, minStrength: 4));
+        if (count($violations) > 0) {
+            $io->error('config/opensign_setup.yaml: admin.password is too weak for an OpenSign admin account.');
+            foreach ($violations as $violation) {
+                $io->text('- ' . $violation->getMessage());
+            }
+
+            return Command::FAILURE;
+        }
 
         try {
             $headers = [

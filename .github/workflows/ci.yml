@@ -12,14 +12,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php: ['8.2', '8.3', '8.4']
-        symfony: ['6.4.*', '7.4.*', '8.0.*']
-        exclude:
-          # symfony/*:8.0.* requires PHP >=8.4
-          - php: '8.2'
-            symfony: '8.0.*'
-          - php: '8.3'
-            symfony: '8.0.*'
+        php: ['8.4']
+        symfony: ['8.0.*']
 
     steps:
       - name: Checkout
@@ -38,6 +32,7 @@ jobs:
             "symfony/console:${{ matrix.symfony }}" \
             "symfony/framework-bundle:${{ matrix.symfony }}" \
             "symfony/http-kernel:${{ matrix.symfony }}" \
+            "symfony/validator:${{ matrix.symfony }}" \
             "symfony/yaml:${{ matrix.symfony }}" \
             "symfony/var-exporter:${{ matrix.symfony }}"
 
