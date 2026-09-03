@@ -13,6 +13,6 @@ class ConfigurationTest extends KernelTestCase
     {
         $configuration = new Configuration();
         $treeBuilder = $configuration->getConfigTreeBuilder();
-        $this->assertSame('opensign_bridge', $treeBuilder->buildTree()->getName());
+        $this->assertSame('open_sign_bridge', $treeBuilder->buildTree()->getName());
     }
 }
