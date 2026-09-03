@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "61cbd11cc01e07a5f850f34a24b35a1e",
+    "content-hash": "ae1c2949adb351b1e6d0939d764e11ec",
     "packages": [
         {
             "name": "guzzlehttp/guzzle",
@@ -336,6 +336,52 @@
                 }
             ],
             "time": "2026-08-24T09:13:11+00:00"
+        },
+        {
+            "name": "larament/dot-env-editor",
+            "version": "v2.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/iRaziul/dot-env-editor.git",
+                "reference": "c660e5de9433ebe7e3f3265270dd83af7bab93ee"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/iRaziul/dot-env-editor/zipball/c660e5de9433ebe7e3f3265270dd83af7bab93ee",
+                "reference": "c660e5de9433ebe7e3f3265270dd83af7bab93ee",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=8.1"
+            },
+            "replace": {
+                "digimax/dot-env-editor": "self.version"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^13.1"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Larament\\DotEnvEditor\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Raziul Islam",
+                    "email": "raziul.dev@gmail.com"
+                }
+            ],
+            "description": "Super simple PHP package for updating .env files",
+            "support": {
+                "issues": "https://github.com/iRaziul/dot-env-editor/issues",
+                "source": "https://github.com/iRaziul/dot-env-editor/tree/v2.0.0"
+            },
+            "time": "2026-05-20T19:39:31+00:00"
         },
         {
             "name": "psr/cache",
@@ -3402,52 +3448,6 @@
         }
     ],
     "packages-dev": [
-        {
-            "name": "larament/dot-env-editor",
-            "version": "v2.0.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/iRaziul/dot-env-editor.git",
-                "reference": "c660e5de9433ebe7e3f3265270dd83af7bab93ee"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/iRaziul/dot-env-editor/zipball/c660e5de9433ebe7e3f3265270dd83af7bab93ee",
-                "reference": "c660e5de9433ebe7e3f3265270dd83af7bab93ee",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=8.1"
-            },
-            "replace": {
-                "digimax/dot-env-editor": "self.version"
-            },
-            "require-dev": {
-                "phpunit/phpunit": "^13.1"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "Larament\\DotEnvEditor\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Raziul Islam",
-                    "email": "raziul.dev@gmail.com"
-                }
-            ],
-            "description": "Super simple PHP package for updating .env files",
-            "support": {
-                "issues": "https://github.com/iRaziul/dot-env-editor/issues",
-                "source": "https://github.com/iRaziul/dot-env-editor/tree/v2.0.0"
-            },
-            "time": "2026-05-20T19:39:31+00:00"
-        },
         {
             "name": "myclabs/deep-copy",
             "version": "1.14.0",
