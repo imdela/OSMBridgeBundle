@@ -28,7 +28,7 @@ class OpenSignPollingService
     /**
      * @return int Number of documents found completed in this run.
      */
-    #[AsPeriodicTask(frequency: 'every 5 minutes')]
+    #[AsPeriodicTask(frequency: '5 minutes')]
     public function pollPendingDocuments(): int
     {
         if (! $this->pendingDocumentProvider instanceof PendingDocumentProviderInterface) {
