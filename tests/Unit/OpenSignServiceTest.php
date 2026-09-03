@@ -210,6 +210,31 @@ class OpenSignServiceTest extends TestCase
         $this->assertEquals('contact123', $result);
     }
 
+    public function testSignDocument(): void
+    {
+        $responseBody = json_encode([
+            'isCompleted' => true,
+            'message' => 'success',
+        ]);
+        $this->client->expects($this->once())
+            ->method('request')
+            ->with(
+                'POST',
+                'http://test-api-url/functions/PDF',
+                $this->callback(function (array $options) {
+                    return self::header($options, 'X-Parse-Master-Key') === 'test-master-key'
+                        && self::jsonField($options, 'docId') === 'doc123'
+                        && self::jsonField($options, 'userId') === 'signer123'
+                        && self::jsonField($options, 'pdfFile') === 'base64pdf';
+                })
+            )
+            ->willReturn(new Response(200, [], $responseBody ?: ''));
+
+        $result = $this->service->signDocument('doc123', 'signer123', 'base64pdf');
+
+        $this->assertTrue($result['isCompleted']);
+    }
+
     private static function header(mixed $options, string $name): mixed
     {
         $headers = is_array($options) ? $options['headers'] ?? null : null;

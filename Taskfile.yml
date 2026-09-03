@@ -75,6 +75,18 @@ tasks:
         --eval "db.dropDatabase()"
       - task: opensign:setup
 
+  # ─── Dependencies ────────────────────────────────────────────────────────
+
+  composer:
+    desc: |
+      Run a composer command on the host (php:8.3-cli-alpine has no composer
+      binary; /app is bind-mounted from the repo root, so host-side composer
+      writes vendor/ and composer.lock where the container will read them).
+      Update lock file:  task composer -- update
+      Require a package: task composer -- require symfony/scheduler
+    cmds:
+      - 'composer {{.CLI_ARGS}}'
+
   # ─── Static analysis ─────────────────────────────────────────────────────
 
   phpstan:

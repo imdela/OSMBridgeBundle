@@ -37,13 +37,6 @@ class Configuration implements ConfigurationInterface
             ->end()
             ->end()
             ->end()
-            ->scalarNode('webhook_secret')
-            ->info(
-                'Shared secret used to verify the x-webhook-signature header on incoming OpenSign webhook calls (HMAC-SHA256). Required.'
-            )
-            ->isRequired()
-            ->cannotBeEmpty()
-            ->end()
             ->end()
         ;
 

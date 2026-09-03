@@ -361,4 +361,43 @@ class OpenSignService
 
         return $data;
     }
+
+    /**
+     * Applies a real cryptographic signature to a document via OpenSign's
+     * own PDF cloud function (@signpdf/signer-p12 server-side, using the
+     * server's configured PFX certificate). $pdfFile is the base64-encoded
+     * original PDF; $signerId is the Signers[].objectId (Contactbook entry
+     * from createGuestSigner) acting on the document.
+     *
+     * @return array<string, mixed>
+     */
+    public function signDocument(
+        string $objectId,
+        string $signerId,
+        string $pdfFileBase64,
+        string $signatureBase64 = ''
+    ): array {
+        $response = $this->client->request('POST', sprintf('%s/functions/PDF', $this->apiUrl), [
+            'headers' => [
+                'X-Parse-Application-Id' => $this->appId,
+                'X-Parse-Master-Key' => $this->masterKey,
+                'Content-Type' => 'application/json',
+            ],
+            'json' => [
+                'docId' => $objectId,
+                'userId' => $signerId,
+                'pdfFile' => $pdfFileBase64,
+                'signature' => $signatureBase64,
+            ],
+        ]);
+
+        if ($response->getStatusCode() !== Response::HTTP_OK) {
+            throw new HttpException($response->getStatusCode(), 'Failed to sign document in OpenSign');
+        }
+
+        /** @var array<string, mixed> $data */
+        $data = json_decode($response->getBody()->getContents(), true);
+
+        return $data;
+    }
 }

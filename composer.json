@@ -11,6 +11,8 @@
 		"symfony/console": "^8.0",
 		"symfony/framework-bundle": "^8.0",
 		"symfony/http-kernel": "^8.0",
+		"symfony/messenger": "^8.0",
+		"symfony/scheduler": "^8.0",
 		"symfony/validator": "^8.0",
 		"symfony/yaml": "^8.0",
 		"symfony/var-exporter": "^8.0"

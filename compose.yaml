@@ -1,7 +1,7 @@
 services:
   # Reference PHP service to show how to link with OpenSign
   opensignb-php:
-    image: php:8.3-cli-alpine
+    image: php:8.4-cli-alpine
     container_name: opensignb-php
     working_dir: /app
     command: tail -f /dev/null

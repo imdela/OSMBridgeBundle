@@ -1,4 +1,0 @@
-opensign_bridge_webhook:
-  path: /opensign/webhook
-  controller: Mosl\OpenSignBridgeBundle\Controller\WebhookController
-  methods: [POST]

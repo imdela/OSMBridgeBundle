@@ -3,14 +3,6 @@ services:
     autoconfigure: true
     autowire: true
 
-  Mosl\OpenSignBridgeBundle\Controller\:
-    resource: "../src/Controller"
-    tags: ["controller.service_arguments"]
-
-  Mosl\OpenSignBridgeBundle\Controller\WebhookController:
-    arguments:
-      $webhookSecret: "%opensign_bridge.webhook_secret%"
-
   # OpenSign API Client
   Mosl\OpenSignBridgeBundle\Service\OpenSignService:
     arguments:
@@ -20,6 +12,13 @@ services:
       $apiUrl: "%opensign_bridge.opensign.api_url%"
       $userId: "%opensign_bridge.opensign.user_id%"
       $sessionToken: "%opensign_bridge.opensign.session_token%"
+
+  Mosl\OpenSignBridgeBundle\Service\OpenSignPollingService: ~
+
+  Mosl\OpenSignBridgeBundle\Command\PollSignaturesCommand:
+    public: true
+    tags:
+      - { name: "console.command", command: "opensignb:poll-signatures" }
 
   Mosl\OpenSignBridgeBundle\Command\OpenSignSetupCommand:
     public: true

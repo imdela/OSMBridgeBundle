@@ -37,10 +37,6 @@ class OpenSignBridgeExtension extends Extension
             'opensign_bridge.opensign.session_token',
             $this->stringOrNull($opensign['session_token'] ?? null)
         );
-        $container->setParameter(
-            'opensign_bridge.webhook_secret',
-            $this->stringOrNull($config['webhook_secret'] ?? null) ?? ''
-        );
     }
 
     private function stringOrNull(mixed $value): ?string
