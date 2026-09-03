@@ -1,8 +1,7 @@
-opensign_bridge:
+open_sign_bridge:
   opensign:
     app_id: "%env(OPENSIGN_APP_ID)%"
     master_key: "%env(OPENSIGN_MASTER_KEY)%"
     api_url: "%env(OPENSIGN_API_URL)%"
     user_id: "%env(OPENSIGN_USER_ID)%"
     session_token: "%env(OPENSIGN_SESSION_TOKEN)%"
-  webhook_secret: "%env(OPENSIGN_WEBHOOK_SECRET)%"

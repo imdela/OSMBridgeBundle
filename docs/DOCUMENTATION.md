@@ -1,62 +1,50 @@
 # OpenSignBridgeBundle Integration Guide
 
-This guide describes the architecture, configuration, and practical usage required to successfully integrate **OpenSign** with **MinIO** via the `OpenSignBridgeBundle` across any Symfony application.
+This guide describes the architecture, configuration, and practical usage required to
+integrate a self-hosted **OpenSign** server (Parse Server based) with **MinIO** (or any
+S3-compatible storage) via the `OpenSignBridgeBundle`.
+
+Every code sample and every field requirement below was verified against a real, running
+`opensign/opensignserver:main` container — not inferred from OpenSign's paid SaaS docs,
+which describe a different product surface (see the webhook note below).
 
 ---
 
 ## 🏗️ Architecture Overview
 
-The bundle bridges three main systems communicating in a typical local/cloud network:
-
-1.  **Consumer Symfony App**: The orchestrator requesting signatures (e.g., invoices, timesheets). It triggers the bundle's services to generate records on OpenSign.
-2.  **OpenSign Server**: The digital signature platform (Parse Server based). It manages documents, signers, and the legal audit trails.
-3.  **MinIO**: An S3-compatible file host to hold the raw physical PDF geometries.
+1.  **Consumer Symfony App**: The orchestrator requesting signatures. It calls the
+    bundle's `OpenSignService` to create documents, signers, and signature requests on
+    OpenSign, and later to poll for completion.
+2.  **OpenSign Server**: The self-hosted digital signature platform (Parse Server
+    based). It manages documents, signers, and the audit trail. **This bundle does not
+    provide the OpenSign server itself** — deploying it (Docker image
+    `opensign/opensignserver:main`, its own MongoDB, and object storage) is the
+    consuming app's responsibility, the same way it deploys its own Postgres.
+3.  **MinIO / S3**: Object storage for the raw PDF files. OpenSign can be configured
+    (`USE_LOCAL=false` + `DO_*` env vars) to reuse a storage bucket the host app
+    already runs — no separate object-storage container is required.
 
 ---
 
 ## ⚙️ Installation
 
-To install this standalone bundle into your principal business application:
-
 ```bash
 composer require mosl/opensign-bridge-bundle
 ```
 
-### ⚡ Automated Setup (Recommended)
+### Manual Configuration
 
-The bundle includes an automation utility to save you from manual configuration:
-
-```bash
-php bin/console opensignb:install
-```
-
-**What this command does:**
-
-- Automatically creates `config/packages/opensign_bridge.yaml`.
-- Enabled the webhook route in `config/routes/opensign_bridge.yaml`.
-- Appends `OPENSIGN_*` environment placeholders to your `.env` file.
-- Copies utility scripts (like the MinIO patch) to your `bin/` directory.
-
----
-
-### 🛠️ Manual Configuration (Alternative)
-
-If you prefer to configure the bundle manually, follow these steps:
-
-#### 1. Register Bundle
-
-Ensure `config/bundles.php` contains the bridge:
+#### 1. Register the bundle
 
 ```php
+// config/bundles.php
 return [
     // ...
     Mosl\OpenSignBridgeBundle\OpenSignBridgeBundle::class => ['all' => true],
 ];
 ```
 
-#### 2. Configure Environment
-
-Update your main application's `.env` configuration file:
+#### 2. Configure environment variables
 
 ```env
 OPENSIGN_APP_ID=myAppId
@@ -64,74 +52,76 @@ OPENSIGN_MASTER_KEY=myMasterKey
 OPENSIGN_API_URL=http://opensign:8080/app
 OPENSIGN_USER_ID=myAdminUserId
 OPENSIGN_SESSION_TOKEN=myPermanentSessionToken
-OPENSIGN_WEBHOOK_SECRET=myWebhookSecurityKey
 ```
 
-`OPENSIGN_WEBHOOK_SECRET` must match the "Webhook Security Key" set in your OpenSign
-instance's webhook settings — it is used to verify the `x-webhook-signature` header
-(HMAC-SHA256) on every incoming webhook call. It is **required**: the bundle will
-refuse to boot if it is missing or empty.
+`OPENSIGN_USER_ID`/`OPENSIGN_SESSION_TOKEN` are produced by `opensignb:opensign:setup`
+(see below) — they don't exist until the server has been bootstrapped once.
 
-#### 3. Apply the YAML Configuration
-
-Create `config/packages/opensign_bridge.yaml` inside your primary application:
+#### 3. Add the bundle configuration
 
 ```yaml
-opensign_bridge:
+# config/packages/opensign_bridge.yaml
+open_sign_bridge:
   opensign:
     app_id: "%env(OPENSIGN_APP_ID)%"
     master_key: "%env(OPENSIGN_MASTER_KEY)%"
     api_url: "%env(OPENSIGN_API_URL)%"
     user_id: "%env(OPENSIGN_USER_ID)%"
     session_token: "%env(OPENSIGN_SESSION_TOKEN)%"
-  webhook_secret: "%env(OPENSIGN_WEBHOOK_SECRET)%"
 ```
 
-#### 4. Enable the Webhook Route
+The config root is `open_sign_bridge`, not `opensign_bridge` — Symfony derives it from
+the extension class name (`OpenSignBridgeExtension`).
 
-Inside `config/routes.yaml` of your principal application:
+#### 4. Bootstrap the server
 
-```yaml
-opensign_bridge_routes:
-  resource: "@OpenSignBridgeBundle/config/routes.yaml"
+Once the OpenSign server is deployed and reachable at `OPENSIGN_API_URL`:
+
+```bash
+php bin/console opensignb:opensign:setup .env
 ```
+
+Creates the system API user, tenant, org, team, and profile; writes the resulting
+`OPENSIGN_USER_ID`/`OPENSIGN_SESSION_TOKEN` into the given env file.
 
 ---
 
-## 💻 Developer Usage
+## 💻 Signing a Document End-to-End
 
-The bundle wraps convoluted API orchestration into a single strict `OpenSignService`.
-
-### 1. Generating a Signature Request
-
-To send a signature process from any service in your application, inject `OpenSignService`:
+The order below is the one real path that has been exercised against a live server
+(`OpenSignService::uploadFile` → `createGuestSigner` → `createSignatureRequest` →
+`signDocument` → poll for completion). Skipping a required field crashes the *server
+process itself*, not just the request — see the warnings inline.
 
 ```php
 <?php
+
 namespace App\Service;
 
 use Mosl\OpenSignBridgeBundle\Service\OpenSignService;
 
 class ContractManagerService
 {
-    private OpenSignService $openSignService;
-
-    public function __construct(OpenSignService $openSignService)
+    public function __construct(private readonly OpenSignService $openSignService)
     {
-        $this->openSignService = $openSignService;
     }
 
-    public function sendForSignature(string $pdfPath, string $clientEmail, string $clientName): void
+    public function sendForSignature(string $pdfPath, string $clientEmail, string $clientName): string
     {
-        // 1. Upload raw bytes to OpenSign (via MinIO)
+        // 1. Upload the PDF.
         $upload = $this->openSignService->uploadFile('contract.pdf', $pdfPath, 'application/pdf');
 
-        // 2. Automate Guest Contact Book Signer
+        // 2. Create (or reuse, by email) a guest signer.
         $signerId = $this->openSignService->createGuestSigner($clientEmail, $clientName);
 
-        // 3. Dispatch Signature Payload
+        // 3. Create the signature request.
         $response = $this->openSignService->createSignatureRequest([
             'Title' => 'Acquisition Contract',
+            // REQUIRED, separate from Title: OpenSign's own completion-certificate
+            // generator crashes the whole Parse Server process if this is missing —
+            // it is not merely rejected as a bad request.
+            'Name' => 'Acquisition Contract',
+            'Status' => 'draft',
             'File' => [
                 '__type' => 'File',
                 'name' => $upload['name'],
@@ -139,34 +129,96 @@ class ContractManagerService
             ],
             'Signers' => [
                 [
-                    'Role' => 'Signer',
-                    'Contact' => [
-                        '__type' => 'Pointer',
-                        'className' => 'contracts_Contactbook',
-                        'objectId' => $signerId
-                    ]
-                ]
+                    '__type' => 'Pointer',
+                    'className' => 'contracts_Contactbook',
+                    'objectId' => $signerId,
+                ],
             ],
-            // 'Status' => 'draft' or omitted depending on publishing preferences
+            // REQUIRED for completion to ever be detected: OpenSign counts signed
+            // audit entries against Placeholders, not against Signers. One entry
+            // per signer, signerObjId matching the Signers[] objectId above.
+            'Placeholders' => [
+                [
+                    'signerObjId' => $signerId,
+                    'Role' => 'signer',
+                ],
+            ],
         ]);
 
-        // $response['objectId'] is the unique signature tracking ID. Store this!
+        return $response['objectId']; // Store this — it's the document id for everything below.
     }
 }
 ```
 
-### 2. Handling Completion via Webhooks
+### Applying the signature
 
-When signers finish standardly via OpenSign, it fires a webhook payload to the registered path (`/opensign/webhook`). Under the hood, the bundle routes this payload natively and dispatches a robust Symfony Event!
+`signDocument()` calls OpenSign's own PDF cloud function (`signPdf`), which applies a
+real cryptographic signature (`@signpdf/signer-p12`) using the server's configured PFX
+certificate:
 
-Every incoming call is verified against the `x-webhook-signature` header (HMAC-SHA256 of
-the raw request body, keyed with `OPENSIGN_WEBHOOK_SECRET`). Requests with a missing or
-invalid signature are rejected with `401 Unauthorized` before any event is dispatched.
+```php
+$result = $openSignService->signDocument($documentId, $signerId, base64_encode($pdfBytes));
+// $result === ['status' => 'success', 'data' => '<signed pdf url>']
+```
 
-All your application needs to do is implement a standard `EventSubscriber`:
+The response is `{"status": "success", "data": <url>}` — **not** an `isCompleted`
+field, even though the document itself gains an `IsCompleted` column server-side. To
+find out whether a document is actually complete, call `getDocument($documentId)` and
+check `$document['IsCompleted']`, or use the polling service below.
+
+The OpenSign server must have `PFX_BASE64`/`PASS_PHRASE` configured (a PKCS#12
+certificate, self-signed is fine for dev/test) — without it, `signDocument()` fails.
+
+---
+
+## 🔁 Detecting Completion: Polling, Not Webhooks
+
+**The self-hosted, open-source OpenSign server has no outbound webhook.** "Live
+Webhooks" are a paid OpenSign Labs SaaS feature — confirmed absent from both the
+running server's cloud code and the public `OpenSignLabs/OpenSign` source. Nothing
+will ever call back into your app when a document is signed.
+
+The bundle instead provides `OpenSignPollingService`, tagged `#[AsPeriodicTask]`
+(Symfony Scheduler): it asks your app which document ids are pending, checks each via
+`getDocument()`, and dispatches `DocumentSignedEvent` for the ones that completed.
+
+### 1. Tell the bundle what to poll
 
 ```php
 <?php
+
+namespace App\Service;
+
+use Mosl\OpenSignBridgeBundle\Contract\PendingDocumentProviderInterface;
+
+class ContractPendingDocumentProvider implements PendingDocumentProviderInterface
+{
+    public function getPendingDocumentIds(): iterable
+    {
+        // Yield the OpenSign document id of every Contract awaiting signature.
+        foreach ($this->contractRepository->findPendingSignature() as $contract) {
+            if ($contract->getOpenSignDocumentId() !== null) {
+                yield $contract->getOpenSignDocumentId();
+            }
+        }
+    }
+}
+```
+
+```yaml
+# config/services.yaml
+Mosl\OpenSignBridgeBundle\Contract\PendingDocumentProviderInterface:
+  alias: App\Service\ContractPendingDocumentProvider
+```
+
+Without this, `OpenSignPollingService::pollPendingDocuments()` is a no-op (returns 0,
+dispatches nothing) — not an error.
+
+### 2. React to completion
+
+```php
+<?php
+
 namespace App\EventSubscriber;
 
 use Mosl\OpenSignBridgeBundle\Event\DocumentSignedEvent;
@@ -176,61 +228,58 @@ class DocumentCompletedSubscriber implements EventSubscriberInterface
 {
     public static function getSubscribedEvents(): array
     {
-        // Intercept native bundle completion dispatch
-        return [
-            DocumentSignedEvent::NAME => 'onDocumentSigned'
-        ];
+        return [DocumentSignedEvent::NAME => 'onDocumentSigned'];
     }
 
     public function onDocumentSigned(DocumentSignedEvent $event): void
     {
-        $openSignObjectId = $event->getDocumentId();
-        $payload = $event->getPayload();
-
-        // Custom business logic:
-        // -> Find local Contract entity where signatureId = $openSignObjectId
-        // -> $contract->setStatus('VALIDATED');
-        // -> $entityManager->flush();
+        // Find your local entity where openSignDocumentId === $event->getDocumentId(),
+        // mark it signed, flush.
     }
 }
+```
+
+### 3. Run the scheduler
+
+`#[AsPeriodicTask]` requires a `messenger:consume scheduler_default` worker process —
+add a transport and run a worker:
+
+```yaml
+# config/packages/messenger.yaml
+framework:
+  messenger:
+    transports:
+      scheduler_default: 'schedule://default'
+```
+
+```bash
+php bin/console messenger:consume scheduler_default --sleep=5 --limit=50
+```
+
+Or trigger a single poll manually/for debugging:
+
+```bash
+php bin/console opensignb:poll-signatures
 ```
 
 ---
 
 ## 🐳 Docker & Taskfile Tips
 
-If your host application runs inside Docker, use these shortcuts to make your life easier.
-
-### 1. Mapping the Bundle (Local Development)
-
-To work on this bundle and your app at the same time:
+If your host application runs inside Docker:
 
 ```yaml
-# In host project's compose.yml
+# host app's compose.yaml
 services:
-  app:
-    volumes:
-      - .:/app
-      - /path/to/opensign-bridge-bundle:/app/opensign-bridge-bundle
+  scheduler:
+    build: { context: ., dockerfile: Dockerfile }
+    entrypoint: php bin/console messenger:consume scheduler_default --sleep=5 --limit=50
+    depends_on:
+      app:
+        condition: service_healthy
 ```
-
-### 2. Required Taskfile Definition
-
-Add this to your host project's `Taskfile.yml` to run the bundle tools easily:
-
-```yaml
-tasks:
-  console:
-    cmds:
-      - docker compose exec app php bin/console {{.CLI_ARGS}}
-```
-
-### 3. Usage Examples
 
 ```bash
-# Install the bundle's automated config
-task console -- opensignb:install
-
-# Bootstrap the OpenSign database
-task console -- opensignb:opensign:setup
+# Bootstrap the OpenSign database (once, after the server is up)
+task console -- opensignb:opensign:setup .env
 ```

@@ -75,24 +75,8 @@ class InstallCommand extends Command
             }
         }
 
-        // 2. Add Routes
-        $io->section('2. Enabling Webhook Routes');
-        $targetRoutes = $this->rootPath . '/config/routes/opensign_bridge.yaml';
-        if (! file_exists($targetRoutes)) {
-            if (! is_dir(dirname($targetRoutes))) {
-                mkdir(dirname($targetRoutes), 0777, true);
-            }
-            file_put_contents(
-                $targetRoutes,
-                "opensign_bridge_routes:\n  resource: \"@OpenSignBridgeBundle/config/routes.yaml\"\n"
-            );
-            $io->success('Enabled routes in config/routes/opensign_bridge.yaml');
-        } else {
-            $io->note('Routes already configured.');
-        }
-
-        // 3. Environment Variables
-        $io->section('3. Setting up Environment Variables (.env)');
+        // 2. Environment Variables
+        $io->section('2. Setting up Environment Variables (.env)');
         $envPath = $this->rootPath . '/.env';
         if (file_exists($envPath)) {
             $envContent = file_get_contents($envPath);
@@ -108,7 +92,6 @@ class InstallCommand extends Command
                 'OPENSIGN_API_URL' => 'http://localhost:8080/app',
                 'OPENSIGN_USER_ID' => '',
                 'OPENSIGN_SESSION_TOKEN' => '',
-                'OPENSIGN_WEBHOOK_SECRET' => '',
             ];
 
             $toAppend = "\n###> mosl/opensign-bridge-bundle ###\n";
@@ -130,7 +113,7 @@ class InstallCommand extends Command
         }
 
         // 4. Copy Scripts
-        $io->section('4. Copying scripts');
+        $io->section('3. Copying scripts');
         $scriptsDir = $this->rootPath . '/bin';
         $bundleScripts = __DIR__ . '/../../resources/scripts';
         if (is_dir($bundleScripts)) {

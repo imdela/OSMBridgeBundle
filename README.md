@@ -56,35 +56,34 @@ To test or develop the bundle independently:
     OPENSIGN_API_URL=http://your-opensign-url/app
     OPENSIGN_USER_ID=your_system_user_id
     OPENSIGN_SESSION_TOKEN=your_session_token
-    OPENSIGN_WEBHOOK_SECRET=your_opensign_webhook_security_key
     ```
 
-    `OPENSIGN_WEBHOOK_SECRET` is **required** — it must match the "Webhook Security Key"
-    configured in your OpenSign instance's webhook settings. The bundle uses it to verify
-    the `x-webhook-signature` header (HMAC-SHA256) on every incoming webhook call, and
-    **refuses to boot if it is missing or empty**. Requests with a missing or invalid
-    signature are rejected with `401 Unauthorized`.
+    `OPENSIGN_USER_ID`/`OPENSIGN_SESSION_TOKEN` come from `opensignb:opensign:setup`
+    (run once against your OpenSign server) — see the [Full Integration Guide](docs/DOCUMENTATION.md).
 
 4.  Add the bundle configuration (`config/packages/opensign_bridge.yaml`):
 
     ```yaml
-    opensign_bridge:
+    open_sign_bridge:
       opensign:
         app_id: "%env(OPENSIGN_APP_ID)%"
         master_key: "%env(OPENSIGN_MASTER_KEY)%"
         api_url: "%env(OPENSIGN_API_URL)%"
         user_id: "%env(OPENSIGN_USER_ID)%"
         session_token: "%env(OPENSIGN_SESSION_TOKEN)%"
-      webhook_secret: "%env(OPENSIGN_WEBHOOK_SECRET)%"
     ```
 
-5.  Register the Webhook routes (`config/routes.yaml`):
+    The config root is `open_sign_bridge`, not `opensign_bridge` — Symfony derives it
+    from the extension class name.
 
-    ```yaml
-    opensign_bridge_routes:
-      resource: "@OpenSignBridgeBundle/config/routes.yaml"
-    ```
+## ⚠️ No Outbound Webhook
+
+The self-hosted, open-source OpenSign server does not call back into your app when a
+document is signed — "Live Webhooks" are a paid OpenSign Labs SaaS feature, confirmed
+absent from the self-hosted server's own code. Detecting completion means polling via
+`OpenSignPollingService`; see the [Full Integration Guide](docs/DOCUMENTATION.md).
 
 ## 📖 Documentation
 
-For full details on usage, services, and handling webhooks, see the [Full Integration Guide](docs/DOCUMENTATION.md).
+For the full signing flow (required payload fields, polling setup, common pitfalls),
+see the [Full Integration Guide](docs/DOCUMENTATION.md).
