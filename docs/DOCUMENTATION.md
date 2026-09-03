@@ -4,10 +4,6 @@ This guide describes the architecture, configuration, and practical usage requir
 integrate a self-hosted **OpenSign** server (Parse Server based) with **MinIO** (or any
 S3-compatible storage) via the `OpenSignBridgeBundle`.
 
-Every code sample and every field requirement below was verified against a real, running
-`opensign/opensignserver:main` container — not inferred from OpenSign's paid SaaS docs,
-which describe a different product surface (see the webhook note below).
-
 ---
 
 ## 🏗️ Architecture Overview
@@ -32,32 +28,8 @@ which describe a different product surface (see the webhook note below).
 composer require mosl/opensign-bridge-bundle
 ```
 
-### Manual Configuration
-
-#### 1. Register the bundle
-
-```php
-// config/bundles.php
-return [
-    // ...
-    Mosl\OpenSignBridgeBundle\OpenSignBridgeBundle::class => ['all' => true],
-];
-```
-
-#### 2. Configure environment variables
-
-```env
-OPENSIGN_APP_ID=myAppId
-OPENSIGN_MASTER_KEY=myMasterKey
-OPENSIGN_API_URL=http://opensign:8080/app
-OPENSIGN_USER_ID=myAdminUserId
-OPENSIGN_SESSION_TOKEN=myPermanentSessionToken
-```
-
-`OPENSIGN_USER_ID`/`OPENSIGN_SESSION_TOKEN` are produced by `opensignb:opensign:setup`
-(see below) — they don't exist until the server has been bootstrapped once.
-
-#### 3. Add the bundle configuration
+This registers the bundle in `config/bundles.php` and writes
+`config/packages/opensign_bridge.yaml` (config root `open_sign_bridge`):
 
 ```yaml
 # config/packages/opensign_bridge.yaml
@@ -70,10 +42,20 @@ open_sign_bridge:
     session_token: "%env(OPENSIGN_SESSION_TOKEN)%"
 ```
 
-The config root is `open_sign_bridge`, not `opensign_bridge` — Symfony derives it from
-the extension class name (`OpenSignBridgeExtension`).
+#### 1. Configure environment variables
 
-#### 4. Bootstrap the server
+```env
+OPENSIGN_APP_ID=myAppId
+OPENSIGN_MASTER_KEY=myMasterKey
+OPENSIGN_API_URL=http://opensign:8080/app
+OPENSIGN_USER_ID=myAdminUserId
+OPENSIGN_SESSION_TOKEN=myPermanentSessionToken
+```
+
+`OPENSIGN_USER_ID`/`OPENSIGN_SESSION_TOKEN` are produced by `opensignb:opensign:setup`
+(see below) — they don't exist until the server has been bootstrapped once.
+
+#### 2. Bootstrap the server
 
 Once the OpenSign server is deployed and reachable at `OPENSIGN_API_URL`:
 
@@ -88,9 +70,8 @@ Creates the system API user, tenant, org, team, and profile; writes the resultin
 
 ## 💻 Signing a Document End-to-End
 
-The order below is the one real path that has been exercised against a live server
-(`OpenSignService::uploadFile` → `createGuestSigner` → `createSignatureRequest` →
-`signDocument` → poll for completion). Skipping a required field crashes the *server
+Order matters: `uploadFile` → `createGuestSigner` → `createSignatureRequest` →
+`signDocument` → poll for completion. Skipping a required field crashes the *server
 process itself*, not just the request — see the warnings inline.
 
 ```php
@@ -174,9 +155,8 @@ certificate, self-signed is fine for dev/test) — without it, `signDocument()` 
 ## 🔁 Detecting Completion: Polling, Not Webhooks
 
 **The self-hosted, open-source OpenSign server has no outbound webhook.** "Live
-Webhooks" are a paid OpenSign Labs SaaS feature — confirmed absent from both the
-running server's cloud code and the public `OpenSignLabs/OpenSign` source. Nothing
-will ever call back into your app when a document is signed.
+Webhooks" are a paid OpenSign Labs SaaS feature, absent from the self-hosted server.
+Nothing will ever call back into your app when a document is signed.
 
 The bundle instead provides `OpenSignPollingService`, tagged `#[AsPeriodicTask]`
 (Symfony Scheduler): it asks your app which document ids are pending, checks each via

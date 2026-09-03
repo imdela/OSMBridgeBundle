@@ -30,35 +30,9 @@ class InstallCommand extends Command
         $io = new SymfonyStyle($input, $output);
         $io->title('OpenSignBridgeBundle Installation Utility');
 
-        // 1. Copy Configuration
-        $io->section('1. Configuring Bundle (opensign_bridge.yaml)');
-        $targetConfig = $this->rootPath . '/config/packages/opensign_bridge.yaml';
-        $templateConfig = __DIR__ . '/../../resources/templates/opensign_bridge.yaml';
-
-        if (! file_exists($templateConfig)) {
-            $io->error('Template configuration not found in bundle.');
-
-            return Command::FAILURE;
-        }
-
-        if (file_exists($targetConfig)) {
-            if ($io->confirm('config/packages/opensign_bridge.yaml already exists. Overwrite?', false)) {
-                copy($templateConfig, $targetConfig);
-                $io->success('Configuration overwritten.');
-            } else {
-                $io->note('Skipped configuration copy.');
-            }
-        } else {
-            if (! is_dir(dirname($targetConfig))) {
-                mkdir(dirname($targetConfig), 0777, true);
-            }
-            copy($templateConfig, $targetConfig);
-            $io->success('Created config/packages/opensign_bridge.yaml');
-        }
-
-        // 1.1 Copy Setup Configuration
+        // 1. Copy Setup Configuration
         if ($io->confirm('Copy opensign_setup.yaml to host app configuration (needed for setup command)?', true)) {
-            $io->section('1.1 Configuring Bootstrap (opensign_setup.yaml)');
+            $io->section('1. Configuring Bootstrap (opensign_setup.yaml)');
             $targetSetup = $this->rootPath . '/config/opensign_setup.yaml';
             $templateSetup = __DIR__ . '/../../config/opensign_setup.yaml';
             if (file_exists($templateSetup)) {
