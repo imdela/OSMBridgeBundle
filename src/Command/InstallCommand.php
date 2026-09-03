@@ -113,8 +113,12 @@ class InstallCommand extends Command
         }
 
         // 4. Copy Scripts
+        // Mirrors the bundle's own compose.yaml, which mounts these under
+        // resources/scripts/ (e.g. opensign-minio-patch.js replaces the
+        // OpenSign server's index.js via a Docker volume) — bin/ has no
+        // consumer for these files.
         $io->section('3. Copying scripts');
-        $scriptsDir = $this->rootPath . '/bin';
+        $scriptsDir = $this->rootPath . '/resources/scripts';
         $bundleScripts = __DIR__ . '/../../resources/scripts';
         if (is_dir($bundleScripts)) {
             if (! is_dir($scriptsDir)) {
@@ -128,7 +132,7 @@ class InstallCommand extends Command
                     }
                     copy($bundleScripts . '/' . $file, $scriptsDir . '/' . $file);
                     chmod($scriptsDir . '/' . $file, 0755);
-                    $io->success('Copied ' . $file . ' to bin/');
+                    $io->success('Copied ' . $file . ' to resources/scripts/');
                 }
             }
         }
