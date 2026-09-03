@@ -220,7 +220,7 @@ class OpenSignServiceTest extends TestCase
             ->method('request')
             ->with(
                 'POST',
-                'http://test-api-url/functions/PDF',
+                'http://test-api-url/functions/signPdf',
                 $this->callback(function (array $options) {
                     return self::header($options, 'X-Parse-Master-Key') === 'test-master-key'
                         && self::jsonField($options, 'docId') === 'doc123'

@@ -377,7 +377,7 @@ class OpenSignService
         string $pdfFileBase64,
         string $signatureBase64 = ''
     ): array {
-        $response = $this->client->request('POST', sprintf('%s/functions/PDF', $this->apiUrl), [
+        $response = $this->client->request('POST', sprintf('%s/functions/signPdf', $this->apiUrl), [
             'headers' => [
                 'X-Parse-Application-Id' => $this->appId,
                 'X-Parse-Master-Key' => $this->masterKey,
