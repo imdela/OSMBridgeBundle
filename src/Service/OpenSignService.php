@@ -395,9 +395,11 @@ class OpenSignService
             throw new HttpException($response->getStatusCode(), 'Failed to sign document in OpenSign');
         }
 
-        /** @var array<string, mixed> $data */
+        /** @var array{result?: array<string, mixed>} $data */
         $data = json_decode($response->getBody()->getContents(), true);
 
-        return $data;
+        // Parse Server always wraps a Cloud Function's return value in
+        // {"result": ...} — this is not a REST class object.
+        return $data['result'] ?? [];
     }
 }

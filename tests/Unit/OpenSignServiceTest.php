@@ -213,8 +213,10 @@ class OpenSignServiceTest extends TestCase
     public function testSignDocument(): void
     {
         $responseBody = json_encode([
-            'isCompleted' => true,
-            'message' => 'success',
+            'result' => [
+                'isCompleted' => true,
+                'message' => 'success',
+            ],
         ]);
         $this->client->expects($this->once())
             ->method('request')
