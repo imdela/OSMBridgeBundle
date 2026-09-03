@@ -256,6 +256,15 @@ class OpenSignService
     /**
      * Creates a signature request in OpenSign.
      *
+     * $payload must include 'Name' (plain string) in addition to 'Title':
+     * OpenSign's own completion-certificate generator (GenerateCertificate.js,
+     * server-side) calls PDFPage.drawText(docDetails.Name, ...) unconditionally
+     * — a missing Name crashes the whole Parse Server process the moment
+     * signDocument() completes the document, not just this request. Also
+     * include 'Placeholders' (array of {signerObjId, Role}, one per entry in
+     * 'Signers') or signDocument() can never mark the document completed —
+     * OpenSign counts signed audit entries against Placeholders, not Signers.
+     *
      * @param array<string, mixed> $payload
      *
      * @return array<string, mixed>
@@ -368,6 +377,11 @@ class OpenSignService
      * server's configured PFX certificate). $pdfFile is the base64-encoded
      * original PDF; $signerId is the Signers[].objectId (Contactbook entry
      * from createGuestSigner) acting on the document.
+     *
+     * Returns {"status": "success", "data": "<signed pdf url>"} on success —
+     * NOT an "IsCompleted"/"isCompleted" field, despite the document itself
+     * gaining an IsCompleted column. Call getDocument($objectId) afterwards
+     * (or use OpenSignPollingService) to check completion.
      *
      * @return array<string, mixed>
      */
