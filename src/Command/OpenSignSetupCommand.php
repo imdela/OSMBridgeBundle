@@ -5,11 +5,9 @@ declare(strict_types=1);
 namespace Mosl\OpenSignBridgeBundle\Command;
 
 use GuzzleHttp\ClientInterface;
-use Larament\DotEnvEditor\DotEnvEditor;
 use Rollerworks\Component\PasswordStrength\Validator\Constraints\PasswordStrength;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
@@ -55,18 +53,10 @@ class OpenSignSetupCommand extends Command
         parent::__construct();
     }
 
-    protected function configure(): void
-    {
-        $this->addArgument('envFile', InputArgument::OPTIONAL, 'The .env file to update', '.env');
-    }
-
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
         $io->title('OpenSign Full Bootstrap Setup');
-
-        $envFileArg = $input->getArgument('envFile');
-        $envFile = is_string($envFileArg) ? $envFileArg : '.env.dist';
 
         $configPath = $this->rootPath . '/config/opensign_setup.yaml';
         if (! file_exists($configPath)) {
@@ -355,20 +345,16 @@ class OpenSignSetupCommand extends Command
             ]);
             $io->success('Schema initialized.');
 
-            // 8. Updating Env
-            $io->section('8. Updating Environment File: ' . $envFile);
-            $filePath = realpath($this->rootPath . '/' . $envFile);
-            if ($filePath) {
-                $editor = DotEnvEditor::load($filePath, false);
-                $editor->set('OPENSIGN_USER_ID', $userId);
-                $editor->set('OPENSIGN_SESSION_TOKEN', $sessionToken);
-                $editor->set('OPENSIGN_API_USERNAME', $config['admin']['username']);
-                $editor->set('OPENSIGN_API_PASSWORD', $config['admin']['password']);
-                $editor->write();
-                $io->success('Environment variables updated in ' . $envFile);
-            } else {
-                $io->warning('Could not find ' . $envFile . '. Please update it manually.');
-            }
+            // 8. Report credentials — never written to disk. Copy these into
+            // your secret store (Doppler, Vault, etc.) yourself.
+            $io->section('8. Bootstrap Credentials');
+            $io->table(['Variable', 'Value'], [
+                ['OPENSIGN_USER_ID', $userId],
+                ['OPENSIGN_SESSION_TOKEN', $sessionToken],
+                ['OPENSIGN_API_USERNAME', (string) $config['admin']['username']],
+                ['OPENSIGN_API_PASSWORD', (string) $config['admin']['password']],
+            ]);
+            $io->warning('These values are shown once and not saved anywhere by this command.');
 
             return Command::SUCCESS;
         } catch (\Exception $e) {

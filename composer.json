@@ -6,7 +6,6 @@
 	"require": {
 		"php": ">=8.4",
 		"guzzlehttp/guzzle": "^7.8",
-		"larament/dot-env-editor": "^2.0",
 		"rollerworks/password-strength-validator": "^3.0",
 		"symfony/console": "^8.0",
 		"symfony/framework-bundle": "^8.0",

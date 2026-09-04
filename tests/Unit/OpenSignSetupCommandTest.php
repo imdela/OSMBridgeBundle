@@ -40,9 +40,7 @@ class OpenSignSetupCommandTest extends TestCase
         $this->writeConfig('CHANGE-ME-BEFORE-RUNNING-opensignb-opensign-setup');
 
         $tester = $this->makeTester();
-        $tester->execute([
-            'envFile' => '.env.test',
-        ]);
+        $tester->execute([]);
 
         $this->assertSame(Command::FAILURE, $tester->getStatusCode());
         $this->assertStringContainsString('placeholder admin password', $tester->getDisplay());
@@ -53,9 +51,7 @@ class OpenSignSetupCommandTest extends TestCase
         $this->writeConfig('short1');
 
         $tester = $this->makeTester();
-        $tester->execute([
-            'envFile' => '.env.test',
-        ]);
+        $tester->execute([]);
 
         $this->assertSame(Command::FAILURE, $tester->getStatusCode());
         $this->assertStringContainsString('too weak', $tester->getDisplay());
@@ -64,9 +60,7 @@ class OpenSignSetupCommandTest extends TestCase
     public function testMissingConfigFileFails(): void
     {
         $tester = $this->makeTester();
-        $tester->execute([
-            'envFile' => '.env.test',
-        ]);
+        $tester->execute([]);
 
         $this->assertSame(Command::FAILURE, $tester->getStatusCode());
         $this->assertStringContainsString('Configuration file not found', $tester->getDisplay());
