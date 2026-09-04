@@ -53,11 +53,9 @@ tasks:
   # ─── OpenSign lifecycle ───────────────────────────────────────────────────
 
   opensign:setup:
-    desc: "Bootstrap OpenSign (user, token, schema). Updates .env.dist and .env.test"
+    desc: "Bootstrap OpenSign (user, token, schema). Prints OPENSIGN_USER_ID/SESSION_TOKEN — nothing is written to disk."
     cmds:
-      - "{{.PHP_EXEC}} php tests/bin/console opensignb:opensign:setup .env.dist"
-      - "{{.PHP_EXEC}} php tests/bin/console opensignb:opensign:setup .env.test"
-      - echo "✅ Setup complete. Run 'task restart' to apply the new env variables."
+      - "{{.PHP_EXEC}} php tests/bin/console opensignb:opensign:setup"
 
   bundle:install:
     desc: "Run the bundle installation command (Test only)"

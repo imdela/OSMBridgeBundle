@@ -1,0 +1,24 @@
+version: "3"
+
+# Shared OpenSign tasks — meant to be included by both this bundle's own
+# Taskfile.yml and any consuming app's Taskfile.yml, so the commands are
+# defined once. Assumes the including Taskfile.yml defines a DOCKER_COMPOSE
+# var and an `exec` task (both are staffos-php/this bundle's own convention).
+
+tasks:
+  opensign:up:
+    desc: "Start the self-hosted OpenSign server + its Mongo. Requires OPENSIGN_APP_ID/OPENSIGN_MASTER_KEY/OPENSIGN_MONGO_ROOT_USER/OPENSIGN_MONGO_ROOT_PASSWORD in Doppler."
+    cmds:
+      - '{{.DOCKER_COMPOSE}} up -d opensign-mongodb'
+      - '{{.DOCKER_COMPOSE}} up -d opensign'
+      - '{{.DOCKER_COMPOSE}} up -d opensign-ui'
+
+  opensign:logs:
+    desc: "Tail the OpenSign server's logs."
+    cmds:
+      - '{{.DOCKER_COMPOSE}} logs -f opensign'
+
+  opensign:setup:
+    desc: "Bootstrap OpenSign (system API user, tenant, org, team). Run once after opensign:up, before anything can be sent for signature. Prints OPENSIGN_USER_ID/SESSION_TOKEN — copy them into your own secret store, nothing is written to disk."
+    cmds:
+      - 'task exec -- php bin/console opensignb:opensign:setup'
