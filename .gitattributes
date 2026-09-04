@@ -1,0 +1,9 @@
+/tests export-ignore
+/.github export-ignore
+/media export-ignore
+/phpstan.neon export-ignore
+/ecs.php export-ignore
+/phpunit.xml.dist export-ignore
+/compose.yaml export-ignore
+/.env.dist export-ignore
+/.env.test export-ignore
